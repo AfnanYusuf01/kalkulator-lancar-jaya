@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Kalkulator Paket Handling — Lancar Jaya</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#000066; --n2:#23237A; --n3:#40408F; --n4:#5E5EA5; --n5:#8080BC; --n6:#A5A5D2;
+  --tan:#C89D7C; --tanS:#EDDCCE; --grey:#DBDBDB; --bg:#F2F2F4;
+  --ink:#14142B; --mut:#6E6E85;
+  --ok:#1F7A4D; --warn:#B07A18; --bad:#A33B2A;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%}
+body{font-family:'Poppins',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink);
+  font-size:14px;line-height:1.5;font-variant-numeric:tabular-nums}
+:focus-visible{outline:2.5px solid var(--tan);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+
+.stripe{height:7px;background:repeating-linear-gradient(90deg,
+  var(--navy) 0 14px,var(--grey) 14px 24px,var(--tan) 24px 32px,var(--navy) 32px 46px,var(--grey) 46px 52px)}
+
+header{background:var(--navy);color:#fff}
+.hw{max-width:1180px;margin:0 auto;padding:15px 20px;display:flex;align-items:center;gap:13px;flex-wrap:wrap}
+.mark{width:42px;height:42px;border-radius:9px;background:#fff;color:var(--navy);display:grid;place-items:center;
+  font-weight:800;font-size:16px;letter-spacing:-1px;flex:none;box-shadow:0 0 0 3px rgba(200,157,124,.5)}
+.ht{font-weight:800;font-size:16px;letter-spacing:-.4px;line-height:1.15}
+.hs{font-size:10.5px;font-weight:300;color:#C3C3E0;letter-spacing:.4px;text-transform:uppercase}
+.sp{flex:1}
+.hb{background:transparent;border:1.5px solid rgba(255,255,255,.35);color:#fff;font-family:inherit;
+  font-size:12px;font-weight:500;padding:8px 14px;border-radius:7px;cursor:pointer;transition:.15s}
+.hb:hover{background:rgba(255,255,255,.12);border-color:var(--tan)}
+
+.shell{max-width:1180px;margin:0 auto;padding:20px;display:grid;grid-template-columns:1fr 350px;gap:20px;align-items:start}
+@media(max-width:1000px){.shell{grid-template-columns:1fr;padding-bottom:92px}}
+
+.card{background:#fff;border-radius:10px;border:1px solid var(--grey);overflow:hidden;margin-bottom:16px}
+.ch{background:var(--navy);color:#fff;padding:10px 15px;font-size:11.5px;font-weight:700;
+  letter-spacing:1.1px;text-transform:uppercase;display:flex;align-items:center;gap:8px}
+.ch .b{color:var(--tan);font-size:13px}
+.cb{padding:15px}
+
+/* paket picker */
+.pk{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+@media(max-width:600px){.pk{grid-template-columns:1fr}}
+.pk button{font-family:inherit;text-align:left;padding:11px 12px;border:2px solid var(--grey);border-radius:9px;
+  background:#fff;cursor:pointer;transition:.15s}
+.pk button:hover{border-color:var(--n6)}
+.pk button[aria-pressed=true]{border-color:var(--navy);background:var(--navy);color:#fff}
+.pk .t{font-size:13px;font-weight:700;line-height:1.2}
+.pk .d{font-size:10.5px;font-weight:300;color:var(--mut);margin-top:3px;line-height:1.35}
+.pk button[aria-pressed=true] .d{color:#C3C3E0}
+
+.warnbox{margin-top:11px;padding:9px 12px;border-radius:7px;font-size:12px;font-weight:500;
+  background:#FDF3E8;color:var(--warn);border-left:4px solid var(--warn);display:none}
+.warnbox.show{display:block}
+
+/* fields */
+.pg{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:11px}
+.f label{display:block;font-size:10px;font-weight:600;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.f input[type=number]{width:100%;font-family:inherit;font-size:15px;font-weight:600;color:var(--navy);
+  padding:8px 10px;border:1.5px solid var(--grey);border-radius:7px;background:#fff}
+.f input:focus{border-color:var(--tan);outline:none}
+.hint{font-size:9.5px;color:var(--mut);margin-top:3px;font-weight:300}
+.seg{display:flex;border:1.5px solid var(--grey);border-radius:7px;overflow:hidden}
+.seg button{flex:1;font-family:inherit;font-size:12px;font-weight:600;padding:8px 3px;border:0;
+  background:#fff;color:var(--mut);cursor:pointer;transition:.15s}
+.seg button[aria-pressed=true]{background:var(--navy);color:#fff}
+
+/* level badge */
+.lvl{display:flex;gap:8px;flex-wrap:wrap;margin-top:13px;padding-top:13px;border-top:1px solid var(--grey)}
+.chip{background:var(--tanS);border-left:3px solid var(--tan);padding:5px 10px;border-radius:0 6px 6px 0}
+.chip .k{font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.chip .v{font-size:12.5px;font-weight:700;color:var(--navy)}
+
+/* core block */
+.core{padding:13px 15px;background:#FAFAFC;border-bottom:1px solid var(--grey)}
+.core .row{display:flex;justify-content:space-between;padding:3px 0;font-size:12.5px}
+.core .row .k{color:var(--mut)}
+.core .row .v{font-weight:600}
+.core .row.t{border-top:1px solid var(--grey);margin-top:6px;padding-top:7px;font-weight:700;color:var(--navy)}
+
+details.det summary{cursor:pointer;padding:9px 15px;font-size:11px;font-weight:700;color:var(--navy);
+  text-transform:uppercase;letter-spacing:.7px;list-style:none;display:flex;justify-content:space-between;align-items:center}
+details.det summary::-webkit-details-marker{display:none}
+details.det summary::after{content:'+';font-size:16px;color:var(--tan)}
+details.det[open] summary::after{content:'–'}
+
+/* item rows */
+.rh,.ir{display:grid;grid-template-columns:1fr 56px 80px 88px;gap:7px;align-items:center}
+.rh{padding:7px 14px 5px;font-size:9px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.5px}
+.rh span:nth-child(n+2){text-align:center}
+.rh span:last-child{text-align:right}
+.ir{padding:6px 14px;border-bottom:1px solid #F5F5F8;font-size:12.5px}
+.ir:hover{background:#FAFAFC}
+.ir.off .nm,.ir.off .sb{opacity:.35}
+.nm{display:flex;align-items:center;gap:8px;min-width:0}
+.nm .tx{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nm .bs{font-size:8px;font-weight:700;padding:1.5px 4px;border-radius:3px;flex:none;background:var(--grey);color:var(--mut)}
+.nm .bs.p{background:var(--navy);color:#fff}
+.tg{position:relative;width:33px;height:18px;flex:none;cursor:pointer}
+.tg input{position:absolute;opacity:0;width:100%;height:100%;margin:0;cursor:pointer}
+.tg .tr{position:absolute;inset:0;background:var(--grey);border-radius:18px;transition:.18s}
+.tg .kn{position:absolute;top:2.5px;left:2.5px;width:13px;height:13px;background:#fff;border-radius:50%;
+  transition:.18s;box-shadow:0 1px 3px rgba(0,0,0,.3)}
+.tg input:checked + .tr{background:var(--navy)}
+.tg input:checked ~ .kn{transform:translateX(14.5px);background:var(--tan)}
+.tg input:focus-visible ~ .tr{box-shadow:0 0 0 2.5px var(--tan)}
+.ir input.n{width:100%;font-family:inherit;font-size:12px;font-weight:600;text-align:center;padding:4px 3px;
+  border:1.5px solid var(--grey);border-radius:6px;color:var(--navy);background:#fff}
+.ir input.n:focus{border-color:var(--tan);outline:none}
+.ir input.n:disabled{background:var(--bg);color:var(--mut);border-color:transparent}
+.sb{text-align:right;font-weight:700}
+.grp{background:var(--tanS);border-left:4px solid var(--tan);padding:6px 12px;font-size:10.5px;
+  font-weight:700;color:var(--navy);letter-spacing:.7px;text-transform:uppercase;
+  display:flex;justify-content:space-between;align-items:center}
+.grp .s{font-size:11.5px}
+
+.add{padding:11px 14px;display:flex;gap:7px;flex-wrap:wrap}
+.add input{flex:1;min-width:120px;font-family:inherit;font-size:12.5px;padding:7px 10px;
+  border:1.5px solid var(--grey);border-radius:7px}
+.add input:focus{border-color:var(--tan);outline:none}
+.btn{font-family:inherit;font-size:12.5px;font-weight:600;padding:8px 15px;border-radius:7px;border:0;
+  background:var(--navy);color:#fff;cursor:pointer}
+.btn:hover{background:var(--n2)}
+.del{background:none;border:0;color:var(--mut);cursor:pointer;font-size:15px;padding:0 3px;line-height:1}
+.del:hover{color:var(--bad)}
+
+/* results */
+.side{position:sticky;top:20px}
+@media(max-width:1000px){.side{position:static}}
+.cmp{padding:13px 15px;background:var(--navy);color:#fff}
+.cmp h4{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:#B0B0D0;margin-bottom:8px}
+.bar{display:flex;height:24px;border-radius:5px;overflow:hidden;background:rgba(255,255,255,.12)}
+.bs2{position:relative;transition:.25s;min-width:0}
+.bs2::after{content:'';position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,rgba(255,255,255,.16) 0 2px,transparent 2px 7px)}
+.lgd{display:flex;flex-wrap:wrap;gap:4px 11px;margin-top:10px}
+.lg{display:flex;align-items:center;gap:5px;font-size:10px;color:#D5D5E8;font-weight:300}
+.lg i{width:8px;height:8px;border-radius:2px;flex:none}
+.lg b{font-weight:600;color:#fff}
+
+.ln{padding:13px 15px}
+.ln .l{display:flex;justify-content:space-between;padding:4px 0;font-size:12.5px}
+.ln .l .k{color:var(--mut)}
+.ln .l .v{font-weight:600}
+.ln .l.t{border-top:2px solid var(--navy);margin-top:6px;padding-top:8px}
+.ln .l.t .k{color:var(--navy);font-weight:700;text-transform:uppercase;font-size:10.5px;letter-spacing:.7px}
+.ln .l.t .v{font-weight:800;color:var(--navy);font-size:14px}
+
+.big{padding:15px;background:var(--bg);border-top:1px solid var(--grey);border-bottom:1px solid var(--grey)}
+.cap{font-size:9px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--mut)}
+.big .amt{font-size:29px;font-weight:800;color:var(--navy);letter-spacing:-1.3px;line-height:1.1}
+.big .amt small{font-size:13px;font-weight:600;letter-spacing:0}
+.big .idr{font-size:11.5px;color:var(--mut)}
+
+.mgn{padding:14px 15px;border-bottom:1px solid var(--grey)}
+.mgn .tp{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.mgn .tp .k{font-size:10px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.6px}
+.mgn .tp .v{font-size:19px;font-weight:800;color:var(--navy)}
+input[type=range]{width:100%;height:5px;-webkit-appearance:none;appearance:none;border-radius:5px;outline:none}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--navy);border:3.5px solid var(--tan);cursor:pointer}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--navy);
+  border:3.5px solid var(--tan);cursor:pointer;box-sizing:border-box}
+.ticks{display:flex;justify-content:space-between;margin-top:5px;font-size:9px;color:var(--mut);font-weight:600}
+.status{margin-top:9px;padding:8px 11px;border-radius:7px;font-size:11.5px;font-weight:600;line-height:1.4}
+.status.ok{background:#EAF5EF;color:var(--ok);border-left:4px solid var(--ok)}
+.status.wr{background:#FDF3E8;color:var(--warn);border-left:4px solid var(--warn)}
+.status.bd{background:#FBEDEA;color:var(--bad);border-left:4px solid var(--bad)}
+
+.sell{padding:15px;background:var(--navy);color:#fff}
+.sell .cap{color:var(--tan)}
+.sell .amt{font-size:32px;font-weight:800;letter-spacing:-1.5px;line-height:1.1}
+.sell .amt small{font-size:14px;font-weight:600;letter-spacing:0;color:#C3C3E0}
+.sell .idr{font-size:12.5px;color:#C3C3E0}
+.sell .sp2{display:flex;gap:14px;margin-top:11px;padding-top:11px;border-top:1px solid rgba(255,255,255,.2)}
+.sell .sp2 div{flex:1}
+.sell .sp2 .k{font-size:9px;color:#A5A5C8;text-transform:uppercase;letter-spacing:.6px;font-weight:600}
+.sell .sp2 .v{font-size:15px;font-weight:700}
+
+.note{font-size:10px;color:var(--mut);line-height:1.5;padding:10px 15px;background:var(--bg);font-weight:300}
+
+.mbar{display:none}
+@media(max-width:1000px){
+  .mbar{display:flex;position:fixed;bottom:0;left:0;right:0;z-index:50;background:var(--navy);color:#fff;
+    padding:10px 18px;gap:14px;align-items:center;box-shadow:0 -3px 16px rgba(0,0,0,.25)}
+  .mbar .k{font-size:8.5px;text-transform:uppercase;letter-spacing:.7px;color:var(--tan);font-weight:700}
+  .mbar .v{font-size:16px;font-weight:800;letter-spacing:-.5px}
+}
+@media(max-width:520px){
+  .rh,.ir{grid-template-columns:1fr 46px 66px 74px;gap:4px}
+  .ir{padding:6px 9px}
+  .nm .bs{display:none}
+  .shell{padding:13px}
+  .big .amt{font-size:25px}.sell .amt{font-size:27px}
+}
+@media print{header,.mbar,.add,.mgn{display:none!important}.shell{grid-template-columns:1fr 310px;padding:0}body{background:#fff}}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="hw">
+    <div class="mark">LJ</div>
+    <div>
+      <div class="ht">Kalkulator Paket Handling</div>
+      <div class="hs">Lancar Jaya &middot; LA &amp; Handling Services</div>
+    </div>
+    <div class="sp"></div>
+    <button class="hb" id="bReset">Kembali ke awal</button>
+    <button class="hb" id="bCopy">Salin ringkasan</button>
+  </div>
+  <div class="stripe"></div>
+</header>
+
+<div class="shell">
+  <div>
+    <div class="card">
+      <div class="ch"><span class="b">&#9889;</span> Jenis Paket</div>
+      <div class="cb">
+        <div class="pk" id="pk">
+          <button type="button" data-v="BESAR" aria-pressed="true">
+            <div class="t">Grup Besar</div>
+            <div class="d">16 pax ke atas. Seluruh handling oleh Tim Handling.</div>
+          </button>
+          <button type="button" data-v="ESENSIAL" aria-pressed="false">
+            <div class="t">Kecil &mdash; Esensial</div>
+            <div class="d">Maks 15 pax. Hanya check-in hotel. Sisanya Muthowif &amp; TL.</div>
+          </button>
+          <button type="button" data-v="LENGKAP" aria-pressed="false">
+            <div class="t">Kecil &mdash; Lengkap</div>
+            <div class="d">Maks 15 pax. Seluruh handling oleh Tim Handling.</div>
+          </button>
+        </div>
+        <div class="warnbox" id="warn"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="b">&#9889;</span> Parameter</div>
+      <div class="cb">
+        <div class="pg">
+          <div class="f"><label for="pax">Jumlah Jama'ah</label><input type="number" id="pax" value="40" min="1"></div>
+          <div class="f"><label for="hari">Hari Muthowif</label><input type="number" id="hari" value="7" min="0">
+            <div class="hint">Durasi paket &minus; 2</div></div>
+          <div class="f"><label for="hIn">Hotel Check-in</label><input type="number" id="hIn" value="2" min="0"></div>
+          <div class="f"><label for="hOut">Hotel Check-out</label><input type="number" id="hOut" value="2" min="0"></div>
+          <div class="f"><label>Kelas Katering</label>
+            <div class="seg" id="sKelas">
+              <button type="button" data-v="Reguler" aria-pressed="true">Reguler</button>
+              <button type="button" data-v="Premium" aria-pressed="false">Premium</button>
+            </div></div>
+          <div class="f"><label>Skenario Tips</label>
+            <div class="seg" id="sTips">
+              <button type="button" data-v="Standar" aria-pressed="true">Standar</button>
+              <button type="button" data-v="Maksimal" aria-pressed="false">Maksimal</button>
+            </div></div>
+          <div class="f"><label for="kurs">Kurs SAR &rarr; IDR</label><input type="number" id="kurs" value="4800" min="1" step="10"></div>
+          <div class="f"><label for="oh">Overhead + Buffer (%)</label><input type="number" id="oh" value="10" min="0" step="0.5">
+            <div class="hint">5% overhead + 5% buffer</div></div>
+        </div>
+        <div class="lvl">
+          <div class="chip"><div class="k">Level Fee</div><div class="v" id="cLvl">–</div></div>
+          <div class="chip"><div class="k">Pengali Fee</div><div class="v" id="cMul">–</div></div>
+          <div class="chip"><div class="k">Bellboy In</div><div class="v" id="cBi">–</div></div>
+          <div class="chip"><div class="k">Bellboy Out</div><div class="v" id="cBo">–</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="b">&#9889;</span> Layanan Inti <span style="font-weight:400;text-transform:none;letter-spacing:0;color:#B0B0D0;font-size:10.5px">&mdash; otomatis ikut jenis paket</span></div>
+      <div class="core">
+        <div class="row"><span class="k">Handling</span><span class="v" id="coHand">–</span></div>
+        <div class="row"><span class="k">Muthowif</span><span class="v" id="coMuth">–</span></div>
+        <div class="row t"><span class="k">Subtotal Inti</span><span class="v" id="coTot">–</span></div>
+      </div>
+      <details class="det">
+        <summary>Lihat rincian &amp; ubah tarif</summary>
+        <div class="rh"><span>Komponen</span><span>Qty</span><span>Rate</span><span>Subtotal</span></div>
+        <div id="coreList"></div>
+      </details>
+    </div>
+
+    <div class="card">
+      <div class="ch"><span class="b">&#9889;</span> Layanan Pilihan</div>
+      <div class="rh"><span>Komponen</span><span>Qty</span><span>Rate</span><span>Subtotal</span></div>
+      <div id="optList"></div>
+      <div class="add">
+        <input type="text" id="nName" placeholder="Nama layanan tambahan">
+        <input type="number" id="nRate" placeholder="Rate" style="max-width:82px">
+        <div class="seg" style="flex:none;width:126px">
+          <button type="button" id="bF" data-v="FLAT" aria-pressed="true">Flat</button>
+          <button type="button" id="bP" data-v="PAX" aria-pressed="false">Per pax</button>
+        </div>
+        <button class="btn" id="bAdd">Tambah</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="side">
+    <div class="card">
+      <div class="cmp">
+        <h4>Komposisi Direct Cost</h4>
+        <div class="bar" id="bar"></div>
+        <div class="lgd" id="lgd"></div>
+      </div>
+      <div class="ln">
+        <div class="l"><span class="k">Direct Cost</span><span class="v" id="vD">–</span></div>
+        <div class="l"><span class="k">+ Overhead &amp; Buffer</span><span class="v" id="vO">–</span></div>
+        <div class="l t"><span class="k">Full Cost</span><span class="v" id="vF">–</span></div>
+      </div>
+      <div class="big">
+        <div class="cap">Full Cost per Jama'ah</div>
+        <div class="amt" id="vFp">–<small> SAR</small></div>
+        <div class="idr" id="vFpI">–</div>
+      </div>
+      <div class="mgn">
+        <div class="tp"><span class="k">Margin</span><span class="v" id="vM">20%</span></div>
+        <input type="range" id="mg" min="5" max="40" step="0.5" value="20">
+        <div class="ticks"><span>5%</span><span>12,5%</span><span>15%</span><span>20%</span><span>40%</span></div>
+        <div class="status ok" id="vSt">–</div>
+      </div>
+      <div class="sell">
+        <div class="cap">Harga Jual per Jama'ah</div>
+        <div class="amt" id="vS">–<small> SAR</small></div>
+        <div class="idr" id="vSI">–</div>
+        <div class="sp2">
+          <div><div class="k">Harga Grup</div><div class="v" id="vST">–</div></div>
+          <div><div class="k">Profit Grup</div><div class="v" id="vP">–</div></div>
+        </div>
+      </div>
+      <div class="note">
+        Layanan Khusus &amp; Insidental (jama'ah sakit, wafat, job insidental) tidak masuk kalkulator ini &mdash;
+        sifatnya pass-through, ditagihkan terpisah ke client.
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="mbar">
+  <div><div class="k">Cost / pax</div><div class="v" id="mF">–</div></div>
+  <div class="sp"></div>
+  <div style="text-align:right"><div class="k">Harga Jual / pax</div><div class="v" id="mS">–</div></div>
+</div>
+
+<textarea id="clip" style="position:fixed;left:-9999px" aria-hidden="true"></textarea>
+
+<script>
+const GRP={
+  HANDLING:{n:'Handling',c:'#000066'}, MUTHOWIF:{n:'Muthowif',c:'#23237A'},
+  KATERING:{n:'Katering',c:'#40408F'}, DRIVER:{n:'Tip Driver',c:'#5E5EA5'},
+  PHOTO:{n:'Photography',c:'#8080BC'}, MEDIS:{n:'Kesehatan',c:'#A5A5D2'},
+  TAMBAHAN:{n:'Tambahan',c:'#C89D7C'}
+};
+
+// scope: ALL = semua paket · FULL = kecuali Esensial · ESN = hanya Esensial
+function core(){return [
+ {g:'HANDLING',n:"Fee Freelancer — Bandara Kedatangan",b:'FLAT',s:200,m:200,q:1,sc:'FULL',lv:1},
+ {g:'HANDLING',n:"Ongkos Transport PP — Kedatangan",b:'FLAT',s:260,m:260,q:1,sc:'FULL'},
+ {g:'HANDLING',n:"Tips Porter — Kedatangan",b:'PAX',s:20,m:20,q:1,sc:'ALL'},
+ {g:'HANDLING',n:"Tips Muasasah — Kedatangan",b:'FLAT',s:20,m:50,q:1,sc:'ALL'},
+ {g:'HANDLING',n:"Fee Freelancer — Check-in Hotel",b:'FLAT',s:250,m:250,q:2,bd:'hIn',sc:'ALL',lv:1},
+ {g:'HANDLING',n:"Tips Bellboy — Check-in",b:'FLAT',s:70,m:70,q:2,bd:'hIn',sc:'ALL',bb:'in'},
+ {g:'HANDLING',n:"Fee Freelancer — Check-out Hotel",b:'FLAT',s:200,m:200,q:2,bd:'hOut',sc:'FULL',lv:1},
+ {g:'HANDLING',n:"Tips Bellboy — Check-out",b:'FLAT',s:80,m:80,q:2,bd:'hOut',sc:'FULL',bb:'out'},
+ {g:'HANDLING',n:"Tips Muasasah — Check-out",b:'FLAT',s:20,m:50,q:1,sc:'ALL'},
+ {g:'HANDLING',n:"Fee Freelancer — Bandara Kepulangan",b:'FLAT',s:250,m:250,q:1,sc:'FULL',lv:1},
+ {g:'HANDLING',n:"Ongkos Transport PP — Kepulangan",b:'FLAT',s:260,m:260,q:1,sc:'FULL'},
+ {g:'HANDLING',n:"Tips Porter — Kepulangan",b:'PAX',s:20,m:20,q:1,sc:'ALL'},
+ {g:'HANDLING',n:"Tips Petugas Zamzam",b:'FLAT',s:20,m:20,q:1,sc:'ALL',dep:'zam'},
+ {g:'MUTHOWIF',n:"Fee Muthowif (per hari)",b:'FLAT',s:250,m:250,q:7,bd:'hari',sc:'ALL'},
+ {g:'MUTHOWIF',n:"Ongkos Muthowif PP",b:'FLAT',s:300,m:300,q:1,sc:'ALL'},
+ {g:'MUTHOWIF',n:"Fee Muthowifah — Raudhoh",b:'FLAT',s:200,m:200,q:1,sc:'ALL'},
+ {g:'MUTHOWIF',n:"Tunjangan Muthowif — Handling Kepulangan",b:'FLAT',s:50,m:50,q:1,sc:'ESN'}
+];}
+
+function opts(){return [
+ {g:'MUTHOWIF',n:"Sewa Transmitter (per sesi umroh)",b:'PAX',s:5,m:5,q:1,on:1},
+ {g:'MUTHOWIF',n:"Kursi Roda — Proses Umroh (sesi × jama'ah)",b:'FLAT',s:250,m:250,q:0,on:0},
+ {g:'MUTHOWIF',n:"Kursi Roda — Harian (hari × jama'ah)",b:'FLAT',s:250,m:250,q:0,on:0},
+ {g:'KATERING',n:"Meal Box / Nasi Box",b:'PAX',s:15,m:15,pr:20,q:1,on:1,tr:1},
+ {g:'KATERING',n:"Snack City Tour",b:'PAX',s:6.5,m:6.5,pr:10,q:2,on:1,tr:1},
+ {g:'KATERING',n:"Snack Madinah–Makkah",b:'PAX',s:8,m:8,pr:12,q:1,on:1,tr:1},
+ {g:'KATERING',n:"Air Zamzam Galon 5L (bawa pulang)",b:'PAX',s:12.5,m:12.5,q:1,on:1,id:'zam'},
+ {g:'KATERING',n:"Albaik Kepulangan",b:'PAX',s:25,m:25,q:1,on:0},
+ {g:'KATERING',n:"Welcoming Drink (zamzam + cup)",b:'FLAT',s:22.5,m:22.5,q:1,on:1},
+ {g:'DRIVER',n:"Tip Driver Bus — 5 rute",b:'FLAT',s:400,m:400,q:1,on:1},
+ {g:'PHOTO',n:"Sesi Standar (CT / Nabawi / Umroh Wajib)",b:'FLAT',s:230,m:230,q:0,on:0},
+ {g:'PHOTO',n:"Sesi CT Makkah + Umroh Kedua",b:'FLAT',s:250,m:250,q:0,on:0},
+ {g:'PHOTO',n:"Sesi Jabal Khandamah",b:'FLAT',s:280,m:280,q:0,on:0},
+ {g:'PHOTO',n:"Surcharge Kamera Profesional",b:'FLAT',s:50,m:50,q:0,on:0},
+ {g:'MEDIS',n:"Fee Tenaga Medis (sesi 3 jam)",b:'FLAT',s:500,m:500,q:0,on:0}
+];}
+
+let C=core(), O=opts(), paket='BESAR', kelas='Reguler', tips='Standar', nb='FLAT';
+const $=i=>document.getElementById(i);
+const N=i=>{const v=parseFloat($(i).value);return isNaN(v)?0:v;};
+const fm=(v,d=0)=>v.toLocaleString('id-ID',{minimumFractionDigits:d,maximumFractionDigits:d});
+const rp=v=>'Rp '+v.toLocaleString('id-ID',{maximumFractionDigits:0});
+
+function lvl(){
+  const p=N('pax');
+  if(p<=20) return {n:'L1',t:'−30%',mu:.70,bi:50,bo:60};
+  if(p<=30) return {n:'L2',t:'−15%',mu:.85,bi:60,bo:70};
+  if(p<=45) return {n:'L3',t:'Normal',mu:1,bi:70,bo:80};
+  return {n:'L4',t:'+15%',mu:1.15,bi:70,bo:80};
+}
+function rate(it){
+  const L=lvl();
+  if(it.bb) return it.bb==='in'?L.bi:L.bo;
+  let r = it.tr ? (kelas==='Premium'?it.pr:it.s) : (tips==='Maksimal'?it.m:it.s);
+  if(it.lv) r*=L.mu;
+  return r;
+}
+function active(it){
+  if(it.sc==='ALL'){
+    if(it.dep==='zam'){const z=O.find(o=>o.id==='zam');return z&&z.on?1:0;}
+    return 1;
+  }
+  if(it.sc==='FULL') return paket==='ESENSIAL'?0:1;
+  if(it.sc==='ESN')  return paket==='ESENSIAL'?1:0;
+  return it.on?1:0;
+}
+function subt(it,pax){
+  const on = it.sc? active(it) : (it.on?1:0);
+  if(!on) return 0;
+  return (it.q||0)*rate(it)*(it.b==='PAX'?pax:1);
+}
+
+function rowHTML(it,i,list,pax,editable){
+  const on = it.sc? active(it) : it.on;
+  const tog = it.sc
+    ? `<span class="bs ${it.b==='PAX'?'p':''}">${it.b==='PAX'?'PAX':'FLAT'}</span>`
+    : `<label class="tg"><input type="checkbox" ${it.on?'checked':''} data-l="${list}" data-i="${i}" data-k="on" aria-label="Aktifkan ${it.n}"><span class="tr"></span><span class="kn"></span></label>`;
+  return `<div class="ir${on?'':' off'}">
+    <div class="nm">${tog}<span class="tx" title="${it.n}">${it.n}</span>
+      ${it.cu?`<button class="del" data-l="${list}" data-i="${i}" data-k="del" title="Hapus">&times;</button>`:''}</div>
+    <input class="n" type="number" value="${it.q}" min="0" data-l="${list}" data-i="${i}" data-k="q" ${on?'':'disabled'} aria-label="Qty">
+    <input class="n" type="number" value="${(+rate(it).toFixed(2))}" min="0" step="0.5" data-l="${list}" data-i="${i}" data-k="r" ${on&&!it.bb&&!it.lv?'':'disabled'} aria-label="Rate">
+    <div class="sb">${fm(subt(it,pax))}</div></div>`;
+}
+
+function render(){
+  const pax=N('pax'), L=lvl();
+  $('cLvl').textContent=L.n; $('cMul').textContent=L.t;
+  $('cBi').textContent=L.bi+' SAR'; $('cBo').textContent=L.bo+' SAR';
+
+  // warning paket vs pax
+  const w=$('warn');
+  if(paket==='BESAR'&&pax<16){w.className='warnbox show';w.textContent='Grup Besar dimulai dari 16 pax. Untuk 15 pax ke bawah, pilih paket Kecil — Esensial atau Lengkap.';}
+  else if(paket!=='BESAR'&&pax>15){w.className='warnbox show';w.textContent='Paket Grup Kecil hanya untuk maksimal 15 pax. Untuk 16 pax ke atas, pilih Grup Besar.';}
+  else w.className='warnbox';
+
+  // core
+  let ch=''; let tH=0,tM=0;
+  C.forEach((it,i)=>{
+    if(!active(it)) return;
+    const s=subt(it,pax); if(it.g==='HANDLING') tH+=s; else tM+=s;
+  });
+  C.forEach((it,i)=>{ if(active(it)) ch+=rowHTML(it,i,'C',pax); });
+  $('coreList').innerHTML=ch;
+  $('coHand').textContent=fm(tH)+' SAR';
+  $('coMuth').textContent=fm(tM)+' SAR';
+  $('coTot').textContent=fm(tH+tM)+' SAR';
+
+  // options grouped
+  let oh='';
+  ['MUTHOWIF','KATERING','DRIVER','PHOTO','MEDIS','TAMBAHAN'].forEach(g=>{
+    const l=O.map((it,i)=>({it,i})).filter(x=>x.it.g===g);
+    if(!l.length) return;
+    const t=l.reduce((a,x)=>a+subt(x.it,pax),0);
+    const nm=g==='MUTHOWIF'?'Tambahan Muthowif':GRP[g].n;
+    oh+=`<div class="grp"><span>${nm}</span><span class="s">${fm(t)} SAR</span></div>`;
+    l.forEach(({it,i})=>{oh+=rowHTML(it,i,'O',pax);});
+  });
+  $('optList').innerHTML=oh;
+  calc();
+}
+
+function calc(){
+  const pax=Math.max(N('pax'),0), kurs=N('kurs');
+  const T={}; Object.keys(GRP).forEach(k=>T[k]=0);
+  let direct=0;
+  C.forEach(it=>{const s=subt(it,pax);T[it.g]+=s;direct+=s;});
+  O.forEach(it=>{const s=subt(it,pax);T[it.g]+=s;direct+=s;});
+
+  const add=direct*N('oh')/100, full=direct+add, fp=pax?full/pax:0;
+  const mg=N('mg')/100, st=mg<1?full/(1-mg):0, sp=pax?st/pax:0, pr=st-full;
+
+  $('vD').textContent=fm(direct)+' SAR';
+  $('vO').textContent=fm(add)+' SAR';
+  $('vF').textContent=fm(full)+' SAR';
+  $('vFp').innerHTML=fm(fp,2)+'<small> SAR</small>';
+  $('vFpI').textContent=rp(fp*kurs);
+  $('vM').textContent=N('mg').toFixed(1).replace('.',',')+'%';
+  $('vS').innerHTML=fm(sp,2)+'<small> SAR</small>';
+  $('vSI').textContent=rp(sp*kurs);
+  $('vST').textContent=fm(st)+' SAR';
+  $('vP').textContent=fm(pr)+' SAR';
+  $('mF').textContent=fm(fp,0)+' SAR';
+  $('mS').textContent=fm(sp,0)+' SAR';
+
+  const m=N('mg'), s=$('vSt');
+  if(m>=20){s.className='status ok';s.textContent='TARGET — harga proposal awal.';}
+  else if(m>=15){s.className='status ok';s.textContent='NEGO — masih ruang aman untuk menawar.';}
+  else if(m>=12.5){s.className='status wr';s.textContent='FLOOR — perlu persetujuan Ocid & Andika.';}
+  else{s.className='status bd';s.textContent='DI BAWAH FLOOR — sebaiknya jangan diambil.';}
+  $('mg').style.background=m>=15?'linear-gradient(90deg,var(--grey),var(--grey))':(m>=12.5?'#F0DFC0':'#F0CFC8');
+
+  const bar=$('bar'),lg=$('lgd'); bar.innerHTML='';lg.innerHTML='';
+  Object.keys(GRP).forEach(k=>{
+    if(T[k]<=0) return;
+    const p=direct?T[k]/direct*100:0;
+    const d=document.createElement('div');
+    d.className='bs2';d.style.width=p+'%';d.style.background=GRP[k].c;
+    d.title=`${GRP[k].n}: ${fm(T[k])} SAR (${p.toFixed(1)}%)`;
+    bar.appendChild(d);
+    const e=document.createElement('span');e.className='lg';
+    e.innerHTML=`<i style="background:${GRP[k].c}"></i>${GRP[k].n} <b>${p.toFixed(0)}%</b>`;
+    lg.appendChild(e);
+  });
+}
+
+function bind(host){
+  $(host).addEventListener('input',e=>{
+    const t=e.target,l=t.dataset.l,i=t.dataset.i,k=t.dataset.k;
+    if(i===undefined) return;
+    const arr=l==='C'?C:O, it=arr[+i];
+    if(k==='on'){it.on=t.checked?1:0;render();return;}
+    const v=parseFloat(t.value)||0;
+    if(k==='q') it.q=v;
+    if(k==='r'){ if(it.tr){kelas==='Premium'?it.pr=v:it.s=v;} else {it.s=v;it.m=Math.max(v,it.m);} }
+    render();
+  });
+  $(host).addEventListener('click',e=>{
+    const b=e.target.closest('[data-k=del]'); if(!b) return;
+    (b.dataset.l==='C'?C:O).splice(+b.dataset.i,1); render();
+  });
+}
+bind('coreList'); bind('optList');
+
+['pax','hari','hIn','hOut','kurs','oh'].forEach(id=>{
+  $(id).addEventListener('input',()=>{
+    C.forEach(it=>{if(it.bd===id)it.q=N(id);});
+    render();
+  });
+});
+$('mg').addEventListener('input',calc);
+
+function seg(h,cb){$(h).addEventListener('click',e=>{
+  const b=e.target.closest('button'); if(!b)return;
+  [...$(h).children].forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));
+  cb(b.dataset.v);});}
+seg('pk',v=>{paket=v;render();});
+seg('sKelas',v=>{kelas=v;render();});
+seg('sTips',v=>{tips=v;render();});
+
+['bF','bP'].forEach(id=>$(id).addEventListener('click',()=>{
+  nb=$(id).dataset.v;
+  $('bF').setAttribute('aria-pressed',nb==='FLAT');
+  $('bP').setAttribute('aria-pressed',nb==='PAX');
+}));
+$('bAdd').addEventListener('click',()=>{
+  const n=$('nName').value.trim(), r=parseFloat($('nRate').value);
+  if(!n||isNaN(r)){$('nName').focus();return;}
+  O.push({g:'TAMBAHAN',n,b:nb,s:r,m:r,q:1,on:1,cu:1});
+  $('nName').value='';$('nRate').value='';render();
+});
+$('nName').addEventListener('keydown',e=>{if(e.key==='Enter')$('bAdd').click();});
+
+$('bReset').addEventListener('click',()=>{
+  C=core();O=opts();paket='BESAR';kelas='Reguler';tips='Standar';
+  [...$('pk').children].forEach((b,i)=>b.setAttribute('aria-pressed',i===0));
+  [...$('sKelas').children].forEach((b,i)=>b.setAttribute('aria-pressed',i===0));
+  [...$('sTips').children].forEach((b,i)=>b.setAttribute('aria-pressed',i===0));
+  const d={pax:40,hari:7,hIn:2,hOut:2,kurs:4800,oh:10,mg:20};
+  Object.entries(d).forEach(([k,v])=>$(k).value=v);
+  render();
+});
+
+$('bCopy').addEventListener('click',()=>{
+  const pax=N('pax'),kurs=N('kurs'),L=lvl();
+  const T={};Object.keys(GRP).forEach(k=>T[k]=0);let direct=0;
+  C.forEach(it=>{const s=subt(it,pax);T[it.g]+=s;direct+=s;});
+  O.forEach(it=>{const s=subt(it,pax);T[it.g]+=s;direct+=s;});
+  const full=direct*(1+N('oh')/100),fp=pax?full/pax:0;
+  const mg=N('mg')/100,st=full/(1-mg),sp=pax?st/pax:0;
+  const pn={BESAR:'Grup Besar',ESENSIAL:'Grup Kecil — Esensial',LENGKAP:'Grup Kecil — Lengkap'}[paket];
+
+  let t=`*PENAWARAN HANDLING — LANCAR JAYA*\n${pn}\n`;
+  t+=`${pax} pax · Muthowif ${N('hari')} hari · ${N('hIn')} hotel · Katering ${kelas}\n`;
+  t+=`Level fee ${L.n} (${L.t})\n━━━━━━━━━━━━━━━\n*RINCIAN COST*\n`;
+  Object.keys(GRP).forEach(k=>{if(T[k]>0)t+=`- ${GRP[k].n}: ${fm(T[k])} SAR\n`;});
+  t+=`\nDirect Cost: *${fm(direct)} SAR*\nOverhead & Buffer ${N('oh')}%: ${fm(full-direct)} SAR\n`;
+  t+=`Full Cost: *${fm(full)} SAR* (${fm(fp,2)}/pax)\n━━━━━━━━━━━━━━━\n`;
+  t+=`*HARGA JUAL* (margin ${N('mg')}%)\nPer pax: *${fm(sp,2)} SAR* / ${rp(sp*kurs)}\n`;
+  t+=`Total grup: *${fm(st)} SAR* / ${rp(st*kurs)}\nProfit grup: ${fm(st-full)} SAR\n`;
+  t+=`━━━━━━━━━━━━━━━\n_Kurs acuan ${fm(kurs)} IDR/SAR — cek ulang saat transaksi._`;
+
+  const ta=$('clip');ta.value=t;ta.select();
+  let ok=false;try{ok=document.execCommand('copy');}catch(e){}
+  if(!ok&&navigator.clipboard){navigator.clipboard.writeText(t).then(()=>flash('Ringkasan tersalin'));}
+  else flash(ok?'Ringkasan tersalin':'Tekan Ctrl+C');
+});
+function flash(m){const b=$('bCopy'),o=b.textContent;b.textContent=m;b.style.borderColor='#C89D7C';
+  setTimeout(()=>{b.textContent=o;b.style.borderColor='';},1700);}
+
+render();
+</script>
+</body>
+</html>

@@ -17,7 +17,40 @@ export default function Calculator() {
   const [showMoreGroupsModal, setShowMoreGroupsModal] = useState(false);
   const [showMorePackagesModal, setShowMorePackagesModal] = useState(false);
 
+  // Shared variables for service category selections (needed in both renderOptionalServices and showMoreGroupsModal)
+  const existingGroups = Array.from(new Set(catalog.map(item => item.group_name)));
+  const staticValues = ['HANDLING', 'MUTHOWIF', 'KATERING', 'DRIVER', 'PHOTO', 'MEDIS', 'TAMBAHAN', 'NEW'];
+  
+  const groupOptionsMap = {
+    HANDLING: { value: 'HANDLING', label: 'Handling', bgClass: 'bg-blue-50 text-blue-600', iconPath: '/flaticon/14041561_512.png' },
+    MUTHOWIF: { value: 'MUTHOWIF', label: 'Muthowif', bgClass: 'bg-purple-50 text-purple-600', iconPath: '/flaticon/10741189_512.png' },
+    KATERING: { value: 'KATERING', label: 'Catering', bgClass: 'bg-amber-50 text-amber-600', iconPath: '/flaticon/15044717_512.png' },
+    DRIVER: { value: 'DRIVER', label: 'Driver Tips', bgClass: 'bg-emerald-50 text-emerald-600', iconPath: '/flaticon/15719383_512.png' },
+    PHOTO: { value: 'PHOTO', label: 'Photos', bgClass: 'bg-indigo-50 text-indigo-600', iconPath: '/flaticon/3693002_512.png' },
+    MEDIS: { value: 'MEDIS', label: 'Medical', bgClass: 'bg-rose-50 text-rose-600', iconPath: '/flaticon/4330213_512.png' },
+    TAMBAHAN: { value: 'TAMBAHAN', label: 'Additional', bgClass: 'bg-slate-50 text-slate-655', iconPath: '/flaticon/2075975_512.png' },
+    NEW: { value: 'NEW', label: 'New Group', bgClass: 'bg-teal-50 text-teal-600', iconPath: '/flaticon/13609678_512.png' }
+  };
+
+  const allOptions = [...staticValues];
+  existingGroups.forEach(g => {
+    if (!allOptions.includes(g)) {
+      allOptions.push(g);
+    }
+  });
+
+  const getOptDetail = (val) => {
+    if (groupOptionsMap[val]) return groupOptionsMap[val];
+    return {
+      value: val,
+      label: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase(),
+      bgClass: 'bg-sky-50 text-sky-655',
+      iconPath: '/flaticon/13609678_512.png'
+    };
+  };
+
   const formatSAR = (v) => parseFloat(v).toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 1 }) + ' SAR';
+
   const formatIDR = (v) => 'Rp ' + (v * kurs).toLocaleString('id-ID', { maximumFractionDigits: 0 });
 
   const getMarginClass = () => {
@@ -291,45 +324,14 @@ export default function Calculator() {
   );
 
   const renderOptionalServices = () => {
-    const existingGroups = Array.from(new Set(catalog.map(item => item.group_name)));
     const availableCatalogItems = catalog.filter(c => {
       const matchesGroup = selGroup === 'NEW' ? true : c.group_name === selGroup;
       const isActiveInCalculator = optItems.some(o => o.item_name.toLowerCase() === c.item_name.toLowerCase() && o.is_active_by_default === 1);
       return matchesGroup && !isActiveInCalculator;
     });
 
-    const staticValues = ['HANDLING', 'MUTHOWIF', 'KATERING', 'DRIVER', 'PHOTO', 'MEDIS', 'TAMBAHAN', 'NEW'];
-    
-    // Mapping of illustrative pilgrimage flat PNG icons provided by the user in public/flaticon/
-    const groupOptionsMap = {
-      HANDLING: { value: 'HANDLING', label: 'Handling', bgClass: 'bg-blue-50 text-blue-600', iconPath: '/flaticon/14041561_512.png' },
-      MUTHOWIF: { value: 'MUTHOWIF', label: 'Muthowif', bgClass: 'bg-purple-50 text-purple-600', iconPath: '/flaticon/10741189_512.png' },
-      KATERING: { value: 'KATERING', label: 'Catering', bgClass: 'bg-amber-50 text-amber-600', iconPath: '/flaticon/15044717_512.png' },
-      DRIVER: { value: 'DRIVER', label: 'Driver Tips', bgClass: 'bg-emerald-50 text-emerald-600', iconPath: '/flaticon/15719383_512.png' },
-      PHOTO: { value: 'PHOTO', label: 'Photos', bgClass: 'bg-indigo-50 text-indigo-600', iconPath: '/flaticon/3693002_512.png' },
-      MEDIS: { value: 'MEDIS', label: 'Medical', bgClass: 'bg-rose-50 text-rose-600', iconPath: '/flaticon/4330213_512.png' },
-      TAMBAHAN: { value: 'TAMBAHAN', label: 'Additional', bgClass: 'bg-slate-50 text-slate-655', iconPath: '/flaticon/2075975_512.png' },
-      NEW: { value: 'NEW', label: 'New Group', bgClass: 'bg-teal-50 text-teal-600', iconPath: '/flaticon/13609678_512.png' }
-    };
-
-    const allOptions = [...staticValues];
-    existingGroups.forEach(g => {
-      if (!allOptions.includes(g)) {
-        allOptions.push(g);
-      }
-    });
-
-    const getOptDetail = (val) => {
-      if (groupOptionsMap[val]) return groupOptionsMap[val];
-      return {
-        value: val,
-        label: val.charAt(0).toUpperCase() + val.slice(1).toLowerCase(),
-        bgClass: 'bg-sky-50 text-sky-655',
-        iconPath: '/flaticon/13609678_512.png'
-      };
-    };
-
     const mainSlotValues = ['HANDLING', 'MUTHOWIF', 'KATERING', 'DRIVER', 'PHOTO'];
+
     const mainSlots = mainSlotValues.map(v => getOptDetail(v));
 
     let slot6 = null;
@@ -343,8 +345,8 @@ export default function Calculator() {
         label: 'More',
         bgClass: 'bg-slate-50 text-slate-500',
         icon: (
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2.8" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 016 3.75h2.25A2.25 2.25 0 0110.5 6v2.25a2.25 2.25 0 01-2.25 2.25H6a2.25 2.25 0 01-2.25-2.25V6zM3.75 15.75A2.25 2.25 0 016 13.5h2.25a2.25 2.25 0 012.25 2.25V18a2.25 2.25 0 01-2.25 2.25H6A2.25 2.25 0 013.75 18v-2.25z" />
+          <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
           </svg>
         )
       };
@@ -402,7 +404,7 @@ export default function Calculator() {
               })}
             </div>
           ))}
-          <div className="add border-t border-slate-100 bg-[#FAFAFC] p-5 flex flex-col gap-4 text-xs font-semibold text-slate-800 text-left">
+          <div className="add-service-panel border-t border-slate-100 bg-[#FAFAFC] p-5 flex flex-col gap-4 text-xs font-semibold text-slate-800 text-left">
             <div className="text-[10px] font-bold uppercase tracking-wider" style={{ color: 'var(--navy)' }}>Add Service to Calculator</div>
             
             {/* Exactly 6 Compact Grid Selector Slots (Illustrative flat PNG icons) */}
@@ -425,7 +427,7 @@ export default function Calculator() {
                           handleSelectCatalogItem('');
                         }
                       }}
-                      className={`aspect-square flex flex-col items-center justify-center p-3 rounded-2xl border transition duration-150 active:scale-95 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.01)] ${
+                      className={`w-full min-h-[98px] flex flex-col items-center justify-center p-2.5 rounded-2xl border transition duration-150 active:scale-95 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.01)] ${
                         isSelected 
                           ? 'border-transparent text-white shadow-md' 
                           : 'border-slate-150 bg-white text-slate-655 hover:border-slate-300 hover:bg-slate-50/50'
@@ -472,22 +474,34 @@ export default function Calculator() {
               )}
             </div>
             
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 items-end border-t border-slate-100/70 pt-4 mt-1">
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-[#7C789B] uppercase tracking-wider block">Quantity (Qty)</label>
-                <input type="number" min="1" value={addQty} onChange={(e) => setAddQty(parseFloat(e.target.value) || 1)} className="w-full px-4 py-2 border border-slate-200 bg-white rounded-full focus:outline-none focus:border-navy-main font-semibold text-xs" />
+            <div className="border-t border-slate-100/70 pt-4 mt-2 space-y-4">
+              <div className="grid grid-cols-3 gap-3">
+                <div className="space-y-1 text-left">
+                  <label className="text-[9px] font-bold text-[#7C789B] uppercase tracking-wider block text-center sm:text-left">Quantity (Qty)</label>
+                  <input type="number" min="1" value={addQty} onChange={(e) => setAddQty(parseFloat(e.target.value) || 1)} className="w-full px-4 py-2.5 border border-slate-200 bg-white rounded-full focus:outline-none focus:border-navy-main font-semibold text-xs text-center" />
+                </div>
+                <div className="space-y-1 text-left">
+                  <label className="text-[9px] font-bold text-[#7C789B] uppercase tracking-wider block text-center sm:text-left">Rate (SAR)</label>
+                  <input type="number" disabled={isClient && selCatalogId} value={addRate} onChange={(e) => setAddRate(parseFloat(e.target.value) || 0)} className="w-full px-4 py-2.5 border border-slate-200 bg-white rounded-full focus:outline-none focus:border-navy-main font-semibold text-xs text-center disabled:bg-slate-100 disabled:text-slate-500" />
+                </div>
+                <div className="space-y-1 text-left">
+                  <label className="text-[9px] font-bold text-[#7C789B] uppercase tracking-wider block text-center sm:text-left">Basis</label>
+                  <select disabled={!!selCatalogId} value={addBasis} onChange={(e) => setAddBasis(e.target.value)} className="w-full px-4 py-2.5 border border-slate-200 bg-white rounded-full focus:outline-none focus:border-navy-main font-semibold text-xs cursor-pointer disabled:bg-slate-100 text-center">
+                    <option value="FLAT">FLAT</option><option value="PAX">PAX</option>
+                  </select>
+                </div>
               </div>
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-[#7C789B] uppercase tracking-wider block">Rate (SAR)</label>
-                <input type="number" disabled={isClient && selCatalogId} value={addRate} onChange={(e) => setAddRate(parseFloat(e.target.value) || 0)} className="w-full px-4 py-2 border border-slate-200 bg-white rounded-full focus:outline-none focus:border-navy-main font-semibold text-xs disabled:bg-slate-100 disabled:text-slate-500" />
-              </div>
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-[#7C789B] uppercase tracking-wider block">Basis</label>
-                <select disabled={!!selCatalogId} value={addBasis} onChange={(e) => setAddBasis(e.target.value)} className="w-full px-4 py-2 border border-slate-200 bg-white rounded-full focus:outline-none focus:border-navy-main font-semibold text-xs cursor-pointer disabled:bg-slate-100">
-                  <option value="FLAT">FLAT</option><option value="PAX">PAX</option>
-                </select>
-              </div>
-              <button type="button" onClick={handleAddDynamicService} className="py-2 px-4 text-white font-bold rounded-full transition shadow-md hover:shadow-lg active:scale-95 cursor-pointer" style={{ backgroundColor: 'var(--navy)' }}>Add Item</button>
+              <button 
+                type="button" 
+                onClick={handleAddDynamicService} 
+                className="w-full py-3 px-4 text-white font-extrabold rounded-full transition shadow-md hover:shadow-lg active:scale-[0.98] cursor-pointer flex items-center justify-center gap-1.5 text-xs uppercase tracking-wider" 
+                style={{ backgroundColor: 'var(--navy)' }}
+              >
+                <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span>Add Service Item</span>
+              </button>
             </div>
           </div>
         </details>
@@ -692,7 +706,7 @@ export default function Calculator() {
                         handleSelectCatalogItem('');
                         setShowMoreGroupsModal(false);
                       }}
-                      className={`aspect-square flex flex-col items-center justify-center p-3.5 rounded-2xl border transition duration-150 active:scale-95 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.01)] ${
+                      className={`w-full min-h-[98px] flex flex-col items-center justify-center p-2.5 rounded-2xl border transition duration-150 active:scale-95 cursor-pointer shadow-[0_4px_12px_rgba(0,0,0,0.01)] ${
                         isSelected 
                           ? 'border-transparent text-white shadow-md' 
                           : 'border-slate-150 bg-white text-slate-655 hover:border-slate-300 hover:bg-slate-50/50'

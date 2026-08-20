@@ -320,8 +320,8 @@ export default function Proposals() {
 
       {/* Selected Proposal Detail Modal */}
       {selectedProposal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs print:relative print:inset-auto print:bg-white print:p-0 print:backdrop-blur-none font-sans">
-          <div className="bg-white rounded-[28px] shadow-xl max-w-2xl w-full border border-slate-200 overflow-hidden flex flex-col h-[85vh] print:h-auto print:shadow-none print:border-none print:w-full print:max-w-none print:overflow-visible relative">
+        <div className="fixed inset-0 z-50 flex items-start md:items-center justify-center p-2.5 sm:p-4 bg-slate-900/60 backdrop-blur-2xs print:relative print:inset-auto print:bg-white print:p-0 print:backdrop-blur-none font-sans pt-3 sm:pt-4">
+          <div className="bg-white rounded-[28px] shadow-xl max-w-2xl w-full border border-slate-200 overflow-hidden flex flex-col h-[80vh] md:h-[85vh] print:h-auto print:shadow-none print:border-none print:w-full print:max-w-none print:overflow-visible relative">
             
             {/* Modal Header */}
             <div className="p-5 border-b border-slate-100 flex justify-between items-center text-white no-print" style={{ backgroundColor: 'var(--navy)' }}>

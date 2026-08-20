@@ -61,11 +61,11 @@ export default function Login() {
         </div>
 
         {/* Inputs & Form */}
-        <form onSubmit={handleSubmit} className="space-y-4.5">
+        <form onSubmit={handleSubmit} className="space-y-4">
           
           {/* Username Input Field with User Icon */}
           <div className="relative text-left">
-            <span className="absolute left-4.5 top-3.5">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
               <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z" />
               </svg>
@@ -75,13 +75,13 @@ export default function Login() {
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               placeholder="Masukkan Username Anda"
-              className="w-full pl-11 pr-5 py-3.5 bg-[#F8FAFC] border border-slate-100 rounded-full text-xs font-semibold text-slate-800 placeholder-slate-450 focus:bg-white focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20 focus:outline-none transition duration-150"
+              className="w-full pl-11 pr-5 py-3.5 bg-[#F8FAFC] border border-slate-100 rounded-full text-xs font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20 focus:outline-none transition duration-150"
             />
           </div>
 
           {/* Password Input Field with Lock Icon & Visibility Toggle */}
           <div className="relative text-left">
-            <span className="absolute left-4.5 top-3.5">
+            <span className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center justify-center">
               <svg className="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
               </svg>
@@ -91,12 +91,12 @@ export default function Login() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               placeholder="Masukkan Kata Sandi Anda"
-              className="w-full pl-11 pr-11 py-3.5 bg-[#F8FAFC] border border-slate-100 rounded-full text-xs font-semibold text-slate-800 placeholder-slate-455 focus:bg-white focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20 focus:outline-none transition duration-150"
+              className="w-full pl-11 pr-11 py-3.5 bg-[#F8FAFC] border border-slate-100 rounded-full text-xs font-semibold text-slate-800 placeholder-slate-400 focus:bg-white focus:border-[#3B82F6] focus:ring-1 focus:ring-[#3B82F6]/20 focus:outline-none transition duration-150"
             />
             <button
               type="button"
               onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-4.5 top-3.5 text-slate-400 hover:text-slate-600 cursor-pointer"
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer flex items-center justify-center"
             >
               {showPassword ? (
                 <svg className="w-4.5 h-4.5" fill="none" stroke="currentColor" strokeWidth="2.2" viewBox="0 0 24 24">
@@ -110,6 +110,7 @@ export default function Login() {
               )}
             </button>
           </div>
+
 
           {/* Forgot Password Link */}
           <div className="text-right pr-2">

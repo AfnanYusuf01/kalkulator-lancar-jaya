@@ -193,11 +193,13 @@ export default function Calculator() {
                 onClick={() => setShowMorePackagesModal(true)}
                 className="w-16 h-16 sm:w-20 sm:h-20 rounded-[24px] flex items-center justify-center border border-slate-150 bg-[#FAFAFC] text-slate-500 hover:border-slate-350 hover:bg-slate-50 transition duration-150 active:scale-95 cursor-pointer shadow-xs"
               >
-                <svg className="w-5 h-5 text-slate-500 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <rect x="10" y="4" width="4" height="4" rx="1" />
-                  <rect x="10" y="10" width="4" height="4" rx="1" />
-                  <rect x="10" y="16" width="4" height="4" rx="1" />
+                <svg className="w-5 h-5 text-slate-500 pointer-events-none" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <rect x="5" y="5" width="5.5" height="5.5" rx="1.8" />
+                  <rect x="13.5" y="5" width="5.5" height="5.5" rx="1.8" />
+                  <rect x="5" y="13.5" width="5.5" height="5.5" rx="1.8" />
+                  <rect x="13.5" y="13.5" width="5.5" height="5.5" rx="1.8" />
                 </svg>
+
               </button>
               <span className="text-[10px] font-black mt-2 leading-tight text-center text-slate-500">
                 More
@@ -345,8 +347,11 @@ export default function Calculator() {
         label: 'More',
         bgClass: 'bg-slate-50 text-slate-500',
         icon: (
-          <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.3" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 6A2.25 2.25 0 0 1 6 3.75h2.25A2.25 2.25 0 0 1 10.5 6v2.25a2.25 2.25 0 0 1-2.25 2.25H6a2.25 2.25 0 0 1-2.25-2.25V6ZM3.75 15.75A2.25 2.25 0 0 1 6 13.5h2.25a2.25 2.25 0 0 1 2.25 2.25V18a2.25 2.25 0 0 1-2.25 2.25H6A2.25 2.25 0 0 1 3.75 18v-2.25ZM13.5 6a2.25 2.25 0 0 1 2.25-2.25H18A2.25 2.25 0 0 1 20.25 6v2.25A2.25 2.25 0 0 1 18 10.5h-2.25a2.25 2.25 0 0 1-2.25-2.25V6ZM13.5 15.75a2.25 2.25 0 0 1 2.25-2.25H18a2.25 2.25 0 0 1 2.25 2.25V18A2.25 2.25 0 0 1 18 20.25h-2.25A2.25 2.25 0 0 1 13.5 18v-2.25Z" />
+          <svg className="w-5 h-5 text-slate-500" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+            <rect x="5" y="5" width="5.5" height="5.5" rx="1.8" />
+            <rect x="13.5" y="5" width="5.5" height="5.5" rx="1.8" />
+            <rect x="5" y="13.5" width="5.5" height="5.5" rx="1.8" />
+            <rect x="13.5" y="13.5" width="5.5" height="5.5" rx="1.8" />
           </svg>
         )
       };
@@ -511,44 +516,38 @@ export default function Calculator() {
 
   const renderSummaryPanel = () => (
     <div className="card shadow-md border-slate-100 rounded-3xl overflow-hidden bg-white">
-      {!isClient && (
-        <div className="cmp p-5 text-left">
-          <h4 className="text-[9px] font-bold uppercase tracking-wider text-[#7C789B] mb-3">Direct Cost Composition</h4>
-          <div className="bar rounded-full overflow-hidden h-4">
-            {Object.entries(costPercentage).map(([group, pct]) => {
-              if (pct <= 0) return null;
-              return <div key={group} style={{ width: `${pct}%`, backgroundColor: costColors[group] || '#CBD5E1' }} className="bs2" title={`${costLabels[group]}: ${pct.toFixed(1)}%`} />;
-            })}
-          </div>
-          <div className="lgd mt-3 flex flex-wrap gap-x-3 gap-y-1">
-            {Object.entries(costSpread).map(([group, val]) => {
-              if (val <= 0) return null;
-              return (
-                <div key={group} className="lg flex items-center gap-1.5 text-2xs text-[#7C789B]">
-                  <i style={{ backgroundColor: costColors[group] }} className="w-2.5 h-2.5 rounded-full" />
-                  <span>{costLabels[group]}: <b className="text-slate-700">{costPercentage[group].toFixed(0)}%</b></span>
-                </div>
-              );
-            })}
-          </div>
+      <div className="cmp p-5 text-left">
+        <h4 className="text-[9px] font-bold uppercase tracking-wider text-[#7C789B] mb-3">Direct Cost Composition</h4>
+        <div className="bar rounded-full overflow-hidden h-4">
+          {Object.entries(costPercentage).map(([group, pct]) => {
+            if (pct <= 0) return null;
+            return <div key={group} style={{ width: `${pct}%`, backgroundColor: costColors[group] || '#CBD5E1' }} className="bs2" title={`${costLabels[group]}: ${pct.toFixed(1)}%`} />;
+          })}
         </div>
-      )}
-      {!isClient && (
-        <div className="ln px-5 py-4 space-y-2 border-b border-slate-100 bg-[#FAFAFC] text-left">
-          <div className="l flex justify-between text-xs font-semibold text-slate-500"><span>Direct Cost</span><span className="text-slate-800">{formatSAR(cost.direct)}</span></div>
-          <div className="l flex justify-between text-xs font-semibold text-slate-500"><span>Overhead &amp; Buffer ({oh}%)</span><span className="text-slate-800">{formatSAR(cost.add)}</span></div>
-          <div className="l t flex justify-between text-xs font-black pt-2 border-t border-slate-200/60">
-            <span style={{ color: 'var(--navy)' }}>Full Cost</span><span style={{ color: 'var(--navy)' }}>{formatSAR(cost.full)}</span>
-          </div>
+        <div className="lgd mt-3 flex flex-wrap gap-x-3 gap-y-1">
+          {Object.entries(costSpread).map(([group, val]) => {
+            if (val <= 0) return null;
+            return (
+              <div key={group} className="lg flex items-center gap-1.5 text-2xs text-[#7C789B]">
+                <i style={{ backgroundColor: costColors[group] }} className="w-2.5 h-2.5 rounded-full" />
+                <span>{costLabels[group]}: <b className="text-slate-700">{costPercentage[group].toFixed(0)}%</b></span>
+              </div>
+            );
+          })}
         </div>
-      )}
-      {!isClient && (
-        <div className="big p-5 border-b border-slate-100 bg-white text-left">
-          <div className="cap text-[9px] font-bold text-slate-400 uppercase tracking-wider">Full Cost per Pax</div>
-          <div className="amt text-2xl font-black mt-0.5" style={{ color: 'var(--navy)' }}>{cost.fp.toFixed(1)} <small className="text-xs font-normal">SAR</small></div>
-          <div className="idr text-2xs text-[#7C789B] font-semibold mt-0.5">{formatIDR(cost.fp)}</div>
+      </div>
+      <div className="ln px-5 py-4 space-y-2 border-b border-slate-100 bg-[#FAFAFC] text-left">
+        <div className="l flex justify-between text-xs font-semibold text-slate-500"><span>Direct Cost</span><span className="text-slate-800">{formatSAR(cost.direct)}</span></div>
+        <div className="l flex justify-between text-xs font-semibold text-slate-500"><span>Overhead &amp; Buffer ({oh}%)</span><span className="text-slate-800">{formatSAR(cost.add)}</span></div>
+        <div className="l t flex justify-between text-xs font-black pt-2 border-t border-slate-200/60">
+          <span style={{ color: 'var(--navy)' }}>Full Cost</span><span style={{ color: 'var(--navy)' }}>{formatSAR(cost.full)}</span>
         </div>
-      )}
+      </div>
+      <div className="big p-5 border-b border-slate-100 bg-white text-left">
+        <div className="cap text-[9px] font-bold text-slate-400 uppercase tracking-wider">Full Cost per Pax</div>
+        <div className="amt text-2xl font-black mt-0.5" style={{ color: 'var(--navy)' }}>{cost.fp.toFixed(1)} <small className="text-xs font-normal">SAR</small></div>
+        <div className="idr text-2xs text-[#7C789B] font-semibold mt-0.5">{formatIDR(cost.fp)}</div>
+      </div>
       <div className="mgn p-5 border-b border-slate-100 text-left">
         <div className="tp flex justify-between items-baseline mb-2">
           <span className="k text-[10px] font-bold text-[#7C789B] uppercase tracking-wider">Profit Margin</span>
@@ -562,12 +561,10 @@ export default function Calculator() {
         <div className="cap text-2xs font-extrabold uppercase tracking-wider text-blue-100">Selling Price per Pax</div>
         <div className="amt text-3xl font-black tracking-tight mt-1">{cost.sp.toFixed(1)} <small className="text-sm font-semibold">SAR</small></div>
         <div className="idr text-xs mt-1 text-blue-100">{formatIDR(cost.sp)}</div>
-        {!isClient && (
-          <div className="sp2 mt-4 pt-4 border-t border-white/20 flex gap-4 text-left">
-            <div className="flex-1"><div className="k text-3xs uppercase tracking-wider text-blue-100">Group Sales</div><div className="v text-sm font-bold text-white mt-0.5">{formatSAR(cost.sellTotal)}</div></div>
-            <div className="flex-1"><div className="k text-3xs uppercase tracking-wider text-blue-100">Group Profit</div><div className="v text-sm font-bold text-emerald-300 mt-0.5">{formatSAR(cost.profit)}</div></div>
-          </div>
-        )}
+        <div className="sp2 mt-4 pt-4 border-t border-white/20 flex gap-4 text-left">
+          <div className="flex-1"><div className="k text-3xs uppercase tracking-wider text-blue-100">Group Sales</div><div className="v text-sm font-bold text-white mt-0.5">{formatSAR(cost.sellTotal)}</div></div>
+          <div className="flex-1"><div className="k text-3xs uppercase tracking-wider text-blue-100">Group Profit</div><div className="v text-sm font-bold text-emerald-300 mt-0.5">{formatSAR(cost.profit)}</div></div>
+        </div>
       </div>
       <div className="note bg-slate-50/50 p-5 flex gap-4 border-t border-slate-100">
         <button type="button" onClick={handleReset} className="flex-1 py-2.5 px-3 border border-slate-200 hover:bg-slate-100/50 font-bold rounded-full text-xs text-slate-655 transition cursor-pointer">Reset</button>
@@ -597,16 +594,14 @@ export default function Calculator() {
         >
           2. Services
         </button>
-        {!isClient && (
-          <button
-            type="button"
-            onClick={() => setActiveStep('ringkasan')}
-            className="flex-1 py-2 text-center text-2xs font-bold rounded-full transition active:scale-98 cursor-pointer"
-            style={activeStep === 'ringkasan' ? { backgroundColor: 'var(--navy)', color: 'white' } : { color: '#64748B' }}
-          >
-            3. Summary
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={() => setActiveStep('ringkasan')}
+          className="flex-1 py-2 text-center text-2xs font-bold rounded-full transition active:scale-98 cursor-pointer"
+          style={activeStep === 'ringkasan' ? { backgroundColor: 'var(--navy)', color: 'white' } : { color: '#64748B' }}
+        >
+          3. Summary
+        </button>
       </div>
 
       <div className="hidden md:grid grid-cols-1 lg:grid-cols-3 gap-5 items-start">
@@ -622,10 +617,10 @@ export default function Calculator() {
       <div className="md:hidden space-y-4">
         {activeStep === 'param' && <>{renderPackageSelector()}{renderParameters()}</>}
         {activeStep === 'layanan' && <>{renderCoreServices()}{renderOptionalServices()}</>}
-        {activeStep === 'ringkasan' && !isClient && renderSummaryPanel()}
+        {activeStep === 'ringkasan' && renderSummaryPanel()}
       </div>
 
-      <div onClick={() => !isClient && setActiveStep('ringkasan')} className="mbar no-print cursor-pointer hover:bg-opacity-95 active:scale-[0.99] transition">
+      <div onClick={() => setActiveStep('ringkasan')} className="mbar no-print cursor-pointer hover:bg-opacity-95 active:scale-[0.99] transition">
         <div className="flex-1 text-left">
           <div className="k">Selling Price per Pax</div>
           <div className="v">

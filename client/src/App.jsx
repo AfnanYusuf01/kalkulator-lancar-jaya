@@ -197,7 +197,7 @@ export default function App() {
         </header>
 
         {/* Scrollable Wrapper for Mobile (Header + Content scroll together) */}
-        <div className="flex-1 overflow-y-auto md:overflow-visible md:flex md:flex-col no-print print:overflow-visible">
+        <div className="flex-1 overflow-y-auto md:overflow-visible md:flex md:flex-col print:overflow-visible">
           
           {/* MOBILE LAYOUT: CURVED GRADIENT HEADER BANNER */}
           <div className="md:hidden mobile-header-banner p-6 pb-12 text-white no-print overflow-hidden relative">

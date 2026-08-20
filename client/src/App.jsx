@@ -14,6 +14,11 @@ export default function App() {
   useEffect(() => {
     if (user) {
       fetchProposals();
+      if (user.role === 'superadmin' || user.role === 'admin') {
+        setActiveTab('dashboard');
+      } else {
+        setActiveTab('kalkulator');
+      }
     }
   }, [user]);
 

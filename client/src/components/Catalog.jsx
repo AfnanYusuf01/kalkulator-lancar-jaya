@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../context/AppContext';
+import PackagesPanel from './PackagesPanel';
+import SettingsPanel from './SettingsPanel';
 
 export default function Catalog() {
   const {
@@ -8,17 +10,9 @@ export default function Catalog() {
     updateCatalogItem,
     createCatalogItem,
     deleteCatalogItem,
-    packages,
-    fetchPackages,
-    savePackage,
-    deletePackage,
-    settings,
-    fetchSettings,
-    updateSettings,
     user
   } = useApp();
 
-  // Sub Tab State
   const [subTab, setSubTab] = useState('catalog');
 
   // Edit Parameter Modal States
@@ -58,54 +52,10 @@ export default function Catalog() {
   const [newCategoryName, setNewCategoryName] = useState('');
   const [categoryMsg, setCategoryMsg] = useState('');
 
-  // Package Management States
-  const [showAddPkgForm, setShowAddPkgForm] = useState(false);
-  const [editingPackage, setEditingPackage] = useState(null);
-  const [packageCode, setPackageCode] = useState('');
-  const [packageName, setPackageName] = useState('');
-  const [packageDesc, setPackageDesc] = useState('');
-  const [selectedCatalogIds, setSelectedCatalogIds] = useState([]);
-  const [pkgMessage, setPkgMessage] = useState('');
-  const [pkgLoading, setPkgLoading] = useState(false);
-
-  // Settings states
-  const [targetMarginInput, setTargetMarginInput] = useState('');
-  const [floorMarginInput, setFloorMarginInput] = useState('');
-  const [settingsMsg, setSettingsMsg] = useState('');
-  const [settingsLoading, setSettingsLoading] = useState(false);
-
   useEffect(() => {
     fetchCatalog();
-    fetchPackages();
-    fetchSettings();
   }, []);
 
-  useEffect(() => {
-    if (settings) {
-      setTargetMarginInput(settings.min_margin !== undefined ? settings.min_margin.toString() : '20');
-      setFloorMarginInput(settings.floor_margin !== undefined ? settings.floor_margin.toString() : '12.5');
-    }
-  }, [settings]);
-
-  const handleSaveSettings = async (e) => {
-    e.preventDefault();
-    setSettingsLoading(true);
-    setSettingsMsg('');
-    try {
-      await updateSettings({
-        min_margin: parseFloat(targetMarginInput),
-        floor_margin: parseFloat(floorMarginInput)
-      });
-      setSettingsMsg('Pengaturan margin berhasil disimpan!');
-      setTimeout(() => setSettingsMsg(''), 2000);
-    } catch (err) {
-      setSettingsMsg(err.message || 'Gagal menyimpan pengaturan.');
-    } finally {
-      setSettingsLoading(false);
-    }
-  };
-
-  // Get unique categories from current catalog merged with custom added ones
   const allCategories = Array.from(new Set([
     ...catalog.map(item => item.group_name),
     ...customCategories
@@ -146,13 +96,13 @@ export default function Catalog() {
 
     try {
       await updateCatalogItem(editingItem.id, updatedData);
-      setMessage('Item katalog berhasil diperbarui.');
+      setMessage('Catalog item updated successfully.');
       setTimeout(() => {
         setEditingItem(null);
         setMessage('');
       }, 1100);
     } catch (err) {
-      setMessage(err.message || 'Gagal memperbarui item katalog.');
+      setMessage(err.message || 'Failed to update catalog item.');
     } finally {
       setLoading(false);
     }
@@ -162,11 +112,11 @@ export default function Catalog() {
     e.preventDefault();
     const finalGroup = newGroupSelect;
     if (!finalGroup) {
-      setAddMsg('Kategori wajib dipilih.');
+      setAddMsg('Category is required.');
       return;
     }
     if (!newItemName.trim()) {
-      setAddMsg('Nama layanan wajib diisi.');
+      setAddMsg('Service name is required.');
       return;
     }
     setAddLoading(true);
@@ -188,7 +138,7 @@ export default function Catalog() {
 
     try {
       await createCatalogItem(newItemData);
-      setAddMsg('Item layanan berhasil ditambahkan ke katalog!');
+      setAddMsg('New service added to catalog successfully!');
       setNewItemName('');
       setNewQtyDef(1);
       setNewRateStd(0);
@@ -202,7 +152,7 @@ export default function Catalog() {
         setShowAddForm(false);
       }, 1500);
     } catch (err) {
-      setAddMsg(err.message || 'Gagal menambahkan item.');
+      setAddMsg(err.message || 'Failed to add item.');
     } finally {
       setAddLoading(false);
     }
@@ -212,15 +162,15 @@ export default function Catalog() {
     e.preventDefault();
     const name = newCategoryName.trim().toUpperCase();
     if (!name) {
-      setCategoryMsg('Nama kategori wajib diisi.');
+      setCategoryMsg('Category name is required.');
       return;
     }
     if (allCategories.includes(name)) {
-      setCategoryMsg('Kategori tersebut sudah terdaftar.');
+      setCategoryMsg('Category is already registered.');
       return;
     }
     setCustomCategories(prev => [...prev, name]);
-    setCategoryMsg(`Kategori "${name}" berhasil ditambahkan! Silakan gunakan kategori ini saat membuat item baru.`);
+    setCategoryMsg(`Category "${name}" created! You can now select it for new items.`);
     setNewCategoryName('');
     setTimeout(() => {
       setCategoryMsg('');
@@ -231,149 +181,71 @@ export default function Catalog() {
   };
 
   const handleDeleteItem = async (itemId) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus parameter ini secara permanen dari katalog?')) return;
+    if (!window.confirm('Are you sure you want to delete this parameter permanently from the catalog?')) return;
     try {
       await deleteCatalogItem(itemId);
     } catch (err) {
-      alert(err.message || 'Gagal menghapus parameter.');
+      alert(err.message || 'Failed to delete parameter.');
     }
   };
 
-  // Package Management Handlers
-  const handleSavePackageSubmit = async (e) => {
-    e.preventDefault();
-    if (!packageName.trim() || (!editingPackage && !packageCode.trim())) {
-      setPkgMessage('Kode paket dan nama paket wajib diisi.');
-      return;
-    }
-    setPkgLoading(true);
-    setPkgMessage('');
-
-    const payload = {
-      id: editingPackage ? editingPackage.id : undefined,
-      package_code: editingPackage ? undefined : packageCode.trim().toUpperCase(),
-      package_name: packageName.trim(),
-      description: packageDesc.trim(),
-      catalog_ids: selectedCatalogIds
-    };
-
-    try {
-      await savePackage(payload);
-      setPkgMessage(editingPackage ? 'Paket berhasil diperbarui!' : 'Paket baru berhasil dibuat!');
-      setPackageCode('');
-      setPackageName('');
-      setPackageDesc('');
-      setSelectedCatalogIds([]);
-      setEditingPackage(null);
-      setTimeout(() => {
-        setPkgMessage('');
-        setShowAddPkgForm(false);
-      }, 1500);
-    } catch (err) {
-      setPkgMessage(err.message || 'Gagal menyimpan paket.');
-    } finally {
-      setPkgLoading(false);
-    }
+  const groupLabels = { HANDLING: 'Handling', MUTHOWIF: 'Muthowif', KATERING: 'Catering', DRIVER: 'Driver Tips', PHOTO: 'Documentation', MEDIS: 'Medical', TAMBAHAN: 'Additional' };
+  const groupBadgeColors = (g) => {
+    if (g === 'HANDLING') return 'bg-blue-50/80 text-blue-700 border border-blue-200';
+    if (g === 'MUTHOWIF') return 'bg-purple-50/80 text-purple-700 border border-purple-200';
+    if (g === 'KATERING') return 'bg-amber-50/80 text-amber-750 border border-amber-200';
+    if (g === 'DRIVER') return 'bg-emerald-50/80 text-emerald-700 border border-emerald-200';
+    return 'bg-slate-100 text-slate-655 border border-slate-200';
   };
-
-  const handleEditPackageClick = (pkg) => {
-    setEditingPackage(pkg);
-    setPackageCode(pkg.package_code);
-    setPackageName(pkg.package_name);
-    setPackageDesc(pkg.description || '');
-    setSelectedCatalogIds(pkg.catalog_ids || []);
-    setShowAddPkgForm(true);
-    setPkgMessage('');
-  };
-
-  const handleDeletePackageClick = async (pkgId) => {
-    if (!window.confirm('Apakah Anda yakin ingin menghapus paket ini secara permanen?')) return;
-    try {
-      await deletePackage(pkgId);
-    } catch (err) {
-      alert(err.message || 'Gagal menghapus paket.');
-    }
-  };
-
-  const handleToggleCatalogId = (id) => {
-    setSelectedCatalogIds(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id]
-    );
-  };
-
-  const groupLabels = {
-    HANDLING: 'Handling',
-    MUTHOWIF: 'Muthowif',
-    KATERING: 'Katering',
-    DRIVER: 'Tips Driver',
-    PHOTO: 'Dokumentasi',
-    MEDIS: 'Medis',
-    TAMBAHAN: 'Tambahan'
-  };
-
-  const groupBadgeColors = (group) => {
-    if (group === 'HANDLING') return 'bg-blue-50/80 text-blue-700 border border-blue-200';
-    if (group === 'MUTHOWIF') return 'bg-purple-50/80 text-purple-700 border border-purple-200';
-    if (group === 'KATERING') return 'bg-amber-50/80 text-amber-750 border border-amber-200';
-    if (group === 'DRIVER') return 'bg-emerald-50/80 text-emerald-700 border border-emerald-200';
-    return 'bg-slate-100 text-slate-650 border border-slate-200';
-  };
-
-  // Group catalog items by category for package checklist
-  const catalogByCategory = {};
-  catalog.forEach(item => {
-    if (!catalogByCategory[item.group_name]) {
-      catalogByCategory[item.group_name] = [];
-    }
-    catalogByCategory[item.group_name].push(item);
-  });
-
   const isEditor = ['superadmin', 'admin', 'inputer'].includes(user?.role);
   const isAdmin = ['superadmin', 'admin'].includes(user?.role);
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-left font-sans">
       
       {/* Title Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between border-b border-[#DBDBDB] pb-3 gap-2">
         <div>
-          <h1 className="text-base font-black text-[#1E293B] tracking-tight uppercase">Pengaturan &amp; Katalog Item</h1>
-          <p className="text-[10px] text-[#6E6E85] font-semibold tracking-wider mt-0.5 uppercase">Kelola daftar layanan, bundling paket, dan konfigurasi tarif dasar item</p>
+          <h1 className="text-base font-black text-slate-800 tracking-tight uppercase">Price Parameters Catalog</h1>
+          <p className="text-[10px] text-[#6E6E85] font-semibold tracking-wider mt-0.5 uppercase">Manage catalog items, travel packages, and default margin rules</p>
         </div>
       </div>
 
       {/* Sub Tab Switcher */}
-      <div className="flex gap-2 border-b border-slate-200 pb-2.5">
+      <div className="flex gap-2 border-b border-slate-200 pb-2 overflow-x-auto whitespace-nowrap no-scrollbar -mx-4 px-4 md:mx-0 md:px-0">
         <button
           onClick={() => setSubTab('catalog')}
-          className={`px-4 py-2 font-bold text-xs rounded-lg transition ${
+          className={`px-4 py-1.5 font-extrabold text-2xs rounded-full transition duration-150 ${
             subTab === 'catalog'
-              ? 'bg-[#1E293B] text-white shadow-sm'
-              : 'text-slate-500 hover:bg-slate-50'
+              ? 'bg-navy-main text-white shadow-sm'
+              : 'bg-slate-100/70 text-slate-500 hover:bg-slate-200/50'
           }`}
+          style={subTab === 'catalog' ? { backgroundColor: 'var(--navy)' } : {}}
         >
-          Katalog Item
+          Catalog
         </button>
         <button
           onClick={() => setSubTab('packages')}
-          className={`px-4 py-2 font-bold text-xs rounded-lg transition ${
+          className={`px-4 py-1.5 font-extrabold text-2xs rounded-full transition duration-150 ${
             subTab === 'packages'
-              ? 'bg-[#1E293B] text-white shadow-sm'
-              : 'text-slate-500 hover:bg-slate-50'
+              ? 'bg-navy-main text-white shadow-sm'
+              : 'bg-slate-100/70 text-slate-500 hover:bg-slate-200/50'
           }`}
+          style={subTab === 'packages' ? { backgroundColor: 'var(--navy)' } : {}}
         >
-          Kelola Paket Perjalanan
+          Packages
         </button>
         {isAdmin && (
           <button
             onClick={() => setSubTab('settings')}
-            className={`px-4 py-2 font-bold text-xs rounded-lg transition ${
+            className={`px-4 py-1.5 font-extrabold text-2xs rounded-full transition duration-150 ${
               subTab === 'settings'
-                ? 'bg-[#1E293B] text-white shadow-sm'
-                : 'text-slate-500 hover:bg-slate-50'
-            }`}
+                ? 'bg-navy-main text-white shadow-sm'
+                : 'bg-slate-100/70 text-slate-500 hover:bg-slate-200/50'
+          }`}
+            style={subTab === 'settings' ? { backgroundColor: 'var(--navy)' } : {}}
           >
-            Konfigurasi Margin
+            Margins
           </button>
         )}
       </div>
@@ -390,9 +262,9 @@ export default function Catalog() {
                     setShowAddCategoryForm(!showAddCategoryForm);
                     setShowAddForm(false);
                   }}
-                  className="px-4 py-2 border border-slate-350 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-lg shadow-sm transition animate-fade-in"
+                  className="px-4 py-2 border border-slate-250 hover:bg-slate-50 text-slate-700 text-xs font-bold rounded-full shadow-3xs transition"
                 >
-                  {showAddCategoryForm ? 'Tutup Form' : 'Tambah Kategori Baru'}
+                  {showAddCategoryForm ? 'Close Form' : 'Add New Category'}
                 </button>
                 <button
                   type="button"
@@ -400,9 +272,10 @@ export default function Catalog() {
                     setShowAddForm(!showAddForm);
                     setShowAddCategoryForm(false);
                   }}
-                  className="px-4 py-2 bg-[#1E293B] hover:bg-[#334155] text-white text-xs font-bold rounded-lg shadow-sm transition animate-fade-in"
+                  className="px-4 py-2 text-white text-xs font-bold rounded-full shadow-3xs transition"
+                  style={{ backgroundColor: 'var(--navy)' }}
                 >
-                  {showAddForm ? 'Tutup Form' : 'Tambah Item Baru'}
+                  {showAddForm ? 'Close Form' : 'Add New Item'}
                 </button>
               </>
             )}
@@ -411,25 +284,25 @@ export default function Catalog() {
           {/* Add Category Form */}
           {showAddCategoryForm && (
             <div className="card border-[#CBD5E1] bg-white animate-slide-down">
-              <div className="ch bg-[#1E293B]">
-                <span>Tambah Kategori Layanan Baru</span>
+              <div className="ch text-white" style={{ backgroundColor: 'var(--navy)' }}>
+                <span>Add New Service Category</span>
               </div>
-              <form onSubmit={handleCreateCategorySubmit} className="cb p-5 space-y-4 text-xs font-semibold text-[#1E293B]">
+              <form onSubmit={handleCreateCategorySubmit} className="cb p-5 space-y-4 text-xs font-semibold text-slate-800">
                 <div className="space-y-1 max-w-sm">
-                  <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Nama Kategori Baru</label>
+                  <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Category Name</label>
                   <input
                     type="text"
                     required
                     value={newCategoryName}
                     onChange={(e) => setNewCategoryName(e.target.value)}
-                    placeholder="Misal: HOTEL, VISA, ASURANSI..."
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B] font-bold uppercase"
+                    placeholder="e.g., HOTEL, VISA, INSURANCE..."
+                    className="w-full px-4 py-2 border border-slate-350 rounded-full focus:outline-none focus:border-navy-main font-bold uppercase"
                   />
                 </div>
 
                 {categoryMsg && (
-                  <div className={`p-3 rounded-lg text-2xs font-bold text-center ${
-                    categoryMsg.includes('berhasil') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                  <div className={`p-3 rounded-xl text-2xs font-bold text-center ${
+                    categoryMsg.includes('created') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                   }`}>
                     {categoryMsg}
                   </div>
@@ -439,15 +312,16 @@ export default function Catalog() {
                   <button
                     type="button"
                     onClick={() => setShowAddCategoryForm(false)}
-                    className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg transition"
+                    className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-full transition"
                   >
-                    Batal
+                    Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-5 py-2 bg-[#1E293B] hover:bg-[#334155] text-white rounded-lg shadow transition"
+                    className="px-5 py-2 text-white rounded-full shadow transition"
+                    style={{ backgroundColor: 'var(--navy)' }}
                   >
-                    Simpan Kategori
+                    Save Category
                   </button>
                 </div>
               </form>
@@ -457,17 +331,17 @@ export default function Catalog() {
           {/* Add Parameter Form */}
           {showAddForm && (
             <div className="card border-[#CBD5E1] bg-white animate-slide-down">
-              <div className="ch bg-[#1E293B]">
-                <span>Tambah Item Layanan Baru</span>
+              <div className="ch text-white" style={{ backgroundColor: 'var(--navy)' }}>
+                <span>Add New Service Item</span>
               </div>
-              <form onSubmit={handleCreateParameter} className="cb p-5 space-y-4 text-xs font-semibold text-[#1E293B]">
+              <form onSubmit={handleCreateParameter} className="cb p-5 space-y-4 text-xs font-semibold text-slate-800">
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Kategori (Grup)</label>
+                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Category (Group)</label>
                     <select
                       value={newGroupSelect}
                       onChange={(e) => setNewGroupSelect(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#1E293B] cursor-pointer"
+                      className="w-full px-4 py-2 border border-slate-350 rounded-full bg-white focus:outline-none focus:border-navy-main cursor-pointer"
                     >
                       {allCategories.map(g => (
                         <option key={g} value={g}>{groupLabels[g] || g}</option>
@@ -476,129 +350,129 @@ export default function Catalog() {
                   </div>
 
                   <div className="space-y-1 md:col-span-2">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Nama Layanan / Komponen</label>
+                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Service / Component Name</label>
                     <input
                       type="text"
                       required
                       value={newItemName}
                       onChange={(e) => setNewItemName(e.target.value)}
-                      placeholder="Misal: Asuransi Perjalanan VIP"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B]"
+                      placeholder="e.g., VIP Travel Insurance"
+                      className="w-full px-4 py-2 border border-slate-350 rounded-full focus:outline-none focus:border-navy-main"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Basis Kalkulasi</label>
+                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Calculation Basis</label>
                     <select
                       value={newBasis}
                       onChange={(e) => setNewBasis(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#1E293B] cursor-pointer"
+                      className="w-full px-4 py-2 border border-slate-355 rounded-full bg-white focus:outline-none focus:border-navy-main cursor-pointer"
                     >
-                      <option value="FLAT">FLAT (Per grup)</option>
-                      <option value="PAX">PAX (Per jama'ah)</option>
+                      <option value="FLAT">FLAT (Per group)</option>
+                      <option value="PAX">PAX (Per pilgrim)</option>
                     </select>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Kuantitas Default</label>
+                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Default Quantity</label>
                     <input
                       type="number"
                       step="0.1"
                       min="0"
                       value={newQtyDef}
                       onChange={(e) => setNewQtyDef(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B]"
+                      className="w-full px-4 py-2 border border-slate-350 rounded-full focus:outline-none focus:border-navy-main"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Cakupan Paket</label>
+                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Package Inclusions Scope</label>
                     <select
                       value={newScope}
                       onChange={(e) => setNewScope(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#1E293B] cursor-pointer"
+                      className="w-full px-4 py-2 border border-slate-350 rounded-full bg-white focus:outline-none focus:border-navy-main cursor-pointer"
                     >
-                      <option value="OPTIONAL">Pilihan (Optional)</option>
-                      <option value="ALL">Semua Paket (Wajib)</option>
-                      <option value="FULL">Kecil-Lengkap &amp; Grup Besar</option>
-                      <option value="ESN">Hanya Kecil-Esensial</option>
+                      <option value="OPTIONAL">Optional Selection</option>
+                      <option value="ALL">All Packages (Mandatory)</option>
+                      <option value="FULL">Small-Complete &amp; Large Group</option>
+                      <option value="ESN">Small-Essential Only</option>
                     </select>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Tarif Standar (SAR)</label>
+                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Standard Rate (SAR)</label>
                     <input
                       type="number"
                       step="0.5"
                       min="0"
                       value={newRateStd}
                       onChange={(e) => setNewRateStd(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B]"
+                      className="w-full px-4 py-2 border border-slate-350 rounded-full focus:outline-none focus:border-navy-main"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Tarif Maksimal (SAR)</label>
+                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Maximal Rate (SAR)</label>
                     <input
                       type="number"
                       step="0.5"
                       min="0"
                       value={newRateMax}
                       onChange={(e) => setNewRateMax(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B]"
+                      className="w-full px-4 py-2 border border-slate-350 rounded-full focus:outline-none focus:border-navy-main"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Tarif Premium Catering (SAR)</label>
+                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Premium Catering Rate (SAR)</label>
                     <input
                       type="number"
                       step="0.5"
                       min="0"
                       value={newRatePrem}
                       onChange={(e) => setNewRatePrem(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B]"
+                      className="w-full px-4 py-2 border border-slate-350 rounded-full focus:outline-none focus:border-navy-main"
                     />
                   </div>
 
-                  <div className="flex flex-col justify-center space-y-2 pl-2">
+                  <div className="flex flex-col justify-center space-y-2 pl-2 text-slate-800">
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={newIsLevelAdjusted}
                         onChange={(e) => setNewIsLevelAdjusted(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 text-[#1E293B]"
+                        className="w-4 h-4 rounded border-slate-300 text-navy-main"
                       />
-                      <span>Fee Terpengaruh Level Fee?</span>
+                      <span>Fee affected by Fee Level?</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={newIsCateringTier}
                         onChange={(e) => setNewIsCateringTier(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 text-[#1E293B]"
+                        className="w-4 h-4 rounded border-slate-300 text-navy-main"
                       />
-                      <span>Termasuk Katering Tier?</span>
+                      <span>Include Catering Tier?</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={newIsActiveByDefault}
                         onChange={(e) => setNewIsActiveByDefault(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 text-[#1E293B]"
+                        className="w-4 h-4 rounded border-slate-300 text-navy-main"
                       />
-                      <span>Aktif Bawaan?</span>
+                      <span>Active by Default?</span>
                     </label>
                   </div>
                 </div>
 
                 {addMsg && (
-                  <div className={`p-3 rounded-lg text-2xs font-bold text-center ${
-                    addMsg.includes('berhasil') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                  <div className={`p-3 rounded-xl text-2xs font-bold text-center ${
+                    addMsg.includes('successfully') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                   }`}>
                     {addMsg}
                   </div>
@@ -608,16 +482,17 @@ export default function Catalog() {
                   <button
                     type="button"
                     onClick={() => setShowAddForm(false)}
-                    className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg transition"
+                    className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-full transition"
                   >
-                    Batal
+                    Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={addLoading}
-                    className="px-5 py-2 bg-[#1E293B] hover:bg-[#334155] text-white rounded-lg shadow transition"
+                    className="px-5 py-2 text-white rounded-full shadow transition"
+                    style={{ backgroundColor: 'var(--navy)' }}
                   >
-                    {addLoading ? 'Menyimpan...' : 'Simpan ke Katalog'}
+                    {addLoading ? 'Saving...' : 'Save to Catalog'}
                   </button>
                 </div>
               </form>
@@ -630,43 +505,43 @@ export default function Catalog() {
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
                   <tr className="bg-slate-50/50 text-[#6E6E85] font-semibold uppercase tracking-wider text-[10px] border-b border-[#DBDBDB]">
-                    <th className="p-3.5">Kategori</th>
-                    <th className="p-3.5">Nama Layanan</th>
+                    <th className="p-3.5">Category</th>
+                    <th className="p-3.5">Service Component</th>
                     <th className="p-3.5 text-center">Basis</th>
-                    <th className="p-3.5 text-center">Qty Bawaan</th>
-                    <th className="p-3.5 text-right">Tarif Standar</th>
-                    <th className="p-3.5 text-right">Tarif Maksimal/Premium</th>
-                    <th className="p-3.5 text-center">Status Bawaan</th>
-                    <th className="p-3.5 text-center w-28">Aksi</th>
+                    <th className="p-3.5 text-center">Default Qty</th>
+                    <th className="p-3.5 text-right">Standard Rate</th>
+                    <th className="p-3.5 text-right">Maximal / Premium Rate</th>
+                    <th className="p-3.5 text-center">Default Status</th>
+                    <th className="p-3.5 text-center w-28">Action</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-[#14142B]">
+                <tbody className="divide-y divide-slate-100 font-medium text-slate-750">
                   {catalog.map(item => (
                     <tr key={item.id} className="hover:bg-slate-50/20 transition duration-150">
                       <td className="p-3.5">
-                        <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${groupBadgeColors(item.group_name)}`}>
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider ${groupBadgeColors(item.group_name)}`}>
                           {groupLabels[item.group_name] || item.group_name}
                         </span>
                       </td>
-                      <td className="p-3.5 text-[#1E293B] font-black text-xs">{item.item_name}</td>
-                      <td className="p-3.5 text-center text-[#6E6E85] font-bold">{item.basis}</td>
-                      <td className="p-3.5 text-center font-bold">{parseFloat(item.qty_default)}</td>
-                      <td className="p-3.5 text-right font-bold text-slate-700">
-                        {parseFloat(item.rate_standard).toLocaleString('id-ID')} SAR
+                      <td className="p-3.5 text-slate-800 font-black text-xs">{item.item_name}</td>
+                      <td className="p-3.5 text-center text-slate-400 font-extrabold">{item.basis}</td>
+                      <td className="p-3.5 text-center font-black">{parseFloat(item.qty_default)}</td>
+                      <td className="p-3.5 text-right font-black text-slate-700">
+                        {parseFloat(item.rate_standard).toLocaleString('en-US')} SAR
                       </td>
-                      <td className="p-3.5 text-right font-bold text-slate-700">
+                      <td className="p-3.5 text-right font-black text-slate-700">
                         {item.is_catering_tier 
-                          ? parseFloat(item.rate_premium).toLocaleString('id-ID') + ' SAR (Prem)'
-                          : parseFloat(item.rate_maximal).toLocaleString('id-ID') + ' SAR'
+                          ? parseFloat(item.rate_premium).toLocaleString('en-US') + ' SAR (Prem)'
+                          : parseFloat(item.rate_maximal).toLocaleString('en-US') + ' SAR'
                         }
                       </td>
                       <td className="p-3.5 text-center">
-                        <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                        <span className={`px-2.5 py-0.5 rounded-full text-[9px] font-black ${
                           item.is_active_by_default === 1 
                             ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' 
                             : 'bg-slate-100 text-slate-400'
                         }`}>
-                          {item.is_active_by_default === 1 ? 'Aktif' : 'Mati'}
+                          {item.is_active_by_default === 1 ? 'Active' : 'Disabled'}
                         </span>
                       </td>
                       <td className="p-3.5 text-center flex items-center justify-center gap-1.5 py-4">
@@ -674,18 +549,19 @@ export default function Catalog() {
                           <button
                             type="button"
                             onClick={() => handleEditClick(item)}
-                            className="px-2.5 py-1.5 bg-[#1E293B] hover:bg-[#334155] text-white text-[10px] font-bold rounded-lg transition"
+                            className="px-3 py-1.5 text-white text-[10px] font-extrabold rounded-full transition shadow-3xs cursor-pointer"
+                            style={{ backgroundColor: 'var(--navy)' }}
                           >
-                            Ubah
+                            Edit
                           </button>
                         )}
                         {isAdmin && (
                           <button
                             type="button"
                             onClick={() => handleDeleteItem(item.id)}
-                            className="px-2.5 py-1.5 border border-slate-250 text-slate-400 hover:text-red-650 hover:bg-red-50 hover:border-red-500/30 text-[10px] font-bold rounded-lg transition"
+                            className="px-3 py-1.5 border border-slate-250 text-slate-400 hover:text-red-650 hover:bg-red-50 hover:border-red-500/30 text-[10px] font-extrabold rounded-full transition cursor-pointer"
                           >
-                            Hapus
+                            Delete
                           </button>
                         )}
                       </td>
@@ -696,63 +572,64 @@ export default function Catalog() {
             </div>
           </div>
 
-          {/* Catalog Parameters List (Mobile Card View - No Horizontal Scroll!) */}
-          <div className="md:hidden space-y-3">
+          {/* Catalog Parameters List (Mobile Card View) */}
+          <div className="md:hidden space-y-3.5">
             {catalog.map(item => (
-              <div key={item.id} className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_15px_rgba(0,0,0,0.02)] p-4 flex items-center justify-between gap-3 relative">
-                <div className="flex items-center gap-3">
+              <div key={item.id} className="bg-white rounded-[24px] border border-slate-100 shadow-[0_12px_30px_rgba(0,32,194,0.02)] p-5 flex items-center justify-between gap-4 relative text-left">
+                <div className="flex items-center gap-4">
                   {/* Category Circle Icon */}
-                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] ${
+                  <div className={`w-11 h-11 rounded-full flex items-center justify-center font-bold text-xs ${
                     item.group_name === 'HANDLING' ? 'bg-blue-50 text-blue-600' :
                     item.group_name === 'MUTHOWIF' ? 'bg-purple-50 text-purple-600' :
-                    item.group_name === 'KATERING' ? 'bg-amber-50 text-amber-655 border border-amber-200' :
+                    item.group_name === 'KATERING' ? 'bg-amber-50 text-amber-600' :
                     item.group_name === 'DRIVER' ? 'bg-emerald-50 text-emerald-600' :
-                    'bg-slate-100 text-slate-650'
+                    'bg-slate-50 text-slate-500'
                   }`}>
                     {item.group_name.slice(0, 2)}
                   </div>
                   
-                  {/* Item Description */}
-                  <div className="text-left">
-                    <h4 className="font-extrabold text-xs text-[#0F172A] leading-snug">{item.item_name}</h4>
-                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
-                      <span className={`px-1.5 py-0.2 rounded text-[7.5px] font-bold uppercase tracking-wider ${groupBadgeColors(item.group_name)}`}>
+                  <div className="space-y-1">
+                    <h4 className="font-extrabold text-sm text-slate-800 leading-tight">{item.item_name}</h4>
+                    <div className="flex flex-wrap items-center gap-2">
+                      <span className={`px-2.5 py-0.5 rounded-full text-[8px] font-black uppercase tracking-wider ${groupBadgeColors(item.group_name)}`}>
                         {groupLabels[item.group_name] || item.group_name}
                       </span>
-                      <span className="text-[8px] font-bold text-slate-400 uppercase">{item.basis} &middot; Qty: {parseFloat(item.qty_default)}</span>
+                      <span className="text-[9px] font-bold text-slate-400 uppercase tracking-wide">
+                        {item.basis} &middot; Qty: {parseFloat(item.qty_default)}
+                      </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Rates & Inline Actions */}
-                <div className="text-right flex flex-col items-end justify-center min-w-[100px]">
-                  <div className="font-black text-xs text-[#0066FF] leading-tight">
-                    {parseFloat(item.rate_standard).toLocaleString('id-ID')} SAR
-                  </div>
-                  <div className="text-[8.5px] font-bold text-slate-400 mt-0.5">
-                    Max: {item.is_catering_tier 
-                      ? parseFloat(item.rate_premium).toLocaleString('id-ID') + ' (Prem)'
-                      : parseFloat(item.rate_maximal).toLocaleString('id-ID')
-                    } SAR
+                <div className="text-right flex flex-col items-end justify-between h-full min-w-[120px]">
+                  <div>
+                    <div className="font-black text-sm text-navy-main leading-none" style={{ color: 'var(--navy)' }}>
+                      {parseFloat(item.rate_standard).toLocaleString('en-US')} SAR
+                    </div>
+                    <div className="text-[9px] font-bold text-slate-400 mt-1 uppercase tracking-wide">
+                      Max: {item.is_catering_tier 
+                        ? parseFloat(item.rate_premium).toLocaleString('en-US') + ' (Prem)'
+                        : parseFloat(item.rate_maximal).toLocaleString('en-US')
+                      } SAR
+                    </div>
                   </div>
                   
-                  {/* Inline Edit/Delete */}
                   {isEditor && (
-                    <div className="flex items-center gap-1 mt-2">
+                    <div className="flex items-center gap-1.5 mt-3">
                       <button
                         type="button"
                         onClick={() => handleEditClick(item)}
-                        className="px-2 py-1 bg-slate-50 hover:bg-[#1E293B] hover:text-white text-[8px] font-bold text-slate-600 rounded-md transition"
+                        className="px-3 py-1 bg-slate-50 hover:bg-navy-main hover:text-white text-[9px] font-extrabold text-slate-600 rounded-full border border-slate-100 transition active:scale-95 cursor-pointer"
                       >
-                        Ubah
+                        Edit
                       </button>
                       {isAdmin && (
                         <button
                           type="button"
                           onClick={() => handleDeleteItem(item.id)}
-                          className="px-2 py-1 bg-red-50 hover:bg-red-650 hover:text-white text-[8px] font-bold text-red-650 rounded-md transition"
+                          className="px-3 py-1 bg-red-50 hover:bg-red-600 hover:text-white text-[9px] font-extrabold text-red-600 rounded-full border border-red-100 transition active:scale-95 cursor-pointer"
                         >
-                          Hapus
+                          Delete
                         </button>
                       )}
                     </div>
@@ -765,99 +642,99 @@ export default function Catalog() {
           {/* Edit Parameter Modal */}
           {editingItem && (
             <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs animate-fade-in">
-              <div className="bg-white rounded-lg shadow-xl max-w-md w-full border border-[#DBDBDB] overflow-hidden">
-                <div className="p-4 border-b border-[#grey] flex justify-between items-center bg-[#1E293B] text-white">
-                  <h3 className="font-bold text-xs uppercase tracking-wider">Ubah Parameter</h3>
+              <div className="bg-white rounded-3xl shadow-xl max-w-md w-full border border-slate-200 overflow-hidden">
+                <div className="p-4 border-b border-slate-100 flex justify-between items-center text-white" style={{ backgroundColor: 'var(--navy)' }}>
+                  <h3 className="font-bold text-xs uppercase tracking-wider">Edit Parameter</h3>
                   <button
                     type="button"
                     onClick={() => setEditingItem(null)}
-                    className="text-white hover:text-[#F59E0B] text-2xl font-bold flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 transition"
+                    className="text-white hover:text-amber-300 text-2xl font-bold flex items-center justify-center w-8 h-8 rounded-full hover:bg-white/10 transition"
                   >
                     &times;
                   </button>
                 </div>
                 
-                <form onSubmit={handleUpdate} className="p-5 space-y-4 text-xs font-semibold text-[#1E293B]">
+                <form onSubmit={handleUpdate} className="p-5 space-y-4 text-xs font-semibold text-slate-800 text-left">
                   <div className="space-y-1">
-                    <div className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider">Nama Komponen</div>
-                    <div className="font-black text-[#1E293B] text-sm leading-snug">{editingItem.item_name}</div>
+                    <div className="text-[9px] font-bold text-slate-400 uppercase tracking-wider">Service Component</div>
+                    <div className="font-black text-slate-800 text-sm leading-snug">{editingItem.item_name}</div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Basis Kalkulasi</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Calculation Basis</label>
                       <select
                         value={editBasis}
                         onChange={(e) => setEditBasis(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#1E293B] cursor-pointer"
+                        className="w-full px-4 py-2 border border-slate-350 rounded-full bg-white focus:outline-none focus:border-navy-main cursor-pointer"
                       >
-                        <option value="FLAT">FLAT (Per grup)</option>
-                        <option value="PAX">PAX (Per jama'ah)</option>
+                        <option value="FLAT">FLAT (Per group)</option>
+                        <option value="PAX">PAX (Per pilgrim)</option>
                       </select>
                     </div>
 
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Cakupan Paket</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Package Scope</label>
                       <select
                         value={editScope}
                         onChange={(e) => setEditScope(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg bg-white focus:outline-none focus:border-[#1E293B] cursor-pointer"
+                        className="w-full px-4 py-2 border border-slate-350 rounded-full bg-white focus:outline-none focus:border-navy-main cursor-pointer"
                       >
-                        <option value="OPTIONAL">Pilihan (Optional)</option>
-                        <option value="ALL">Semua Paket (Wajib)</option>
-                        <option value="FULL">Kecil-Lengkap &amp; Grup Besar</option>
-                        <option value="ESN">Hanya Kecil-Esensial</option>
+                        <option value="OPTIONAL">Optional Selection</option>
+                        <option value="ALL">All Packages (Mandatory)</option>
+                        <option value="FULL">Small-Complete &amp; Large Group</option>
+                        <option value="ESN">Small-Essential Only</option>
                       </select>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Qty Default</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Default Qty</label>
                       <input
                         type="number"
                         step="0.1"
                         value={qtyDef}
                         onChange={(e) => setQtyDef(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#1E293B]"
+                        className="w-full px-4 py-2 border border-slate-350 rounded-full text-xs font-semibold focus:outline-none focus:border-navy-main"
                       />
                     </div>
                     
                     <div className="space-y-1 flex items-end justify-start pl-2 pb-1.5">
-                      <label className="flex items-center gap-2 cursor-pointer text-[#1E293B] font-bold">
+                      <label className="flex items-center gap-2 cursor-pointer text-slate-800 font-bold">
                         <input
                           type="checkbox"
                           checked={isActive}
                           onChange={(e) => setIsActive(e.target.checked)}
-                          className="w-4.5 h-4.5 text-[#1E293B] rounded border-[#DBDBDB]"
+                          className="w-4.5 h-4.5 text-navy-main rounded border-slate-300"
                         />
-                        Aktif Bawaan
+                        Active by Default
                       </label>
                     </div>
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Rate Standard (SAR)</label>
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">Standard Rate (SAR)</label>
                       <input
                         type="number"
                         step="0.5"
                         value={rateStd}
                         onChange={(e) => setRateStd(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#1E293B]"
+                        className="w-full px-4 py-2 border border-slate-350 rounded-full text-xs font-semibold focus:outline-none focus:border-navy-main"
                       />
                     </div>
                     
                     <div className="space-y-1">
-                      <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">
-                        {editingItem.is_catering_tier ? 'Rate Premium (SAR)' : 'Rate Maksimal (SAR)'}
+                      <label className="text-[9px] font-bold text-slate-400 uppercase tracking-wider block">
+                        {editingItem.is_catering_tier ? 'Premium Rate (SAR)' : 'Maximal Rate (SAR)'}
                       </label>
                       <input
                         type="number"
                         step="0.5"
                         value={editingItem.is_catering_tier ? ratePrem : rateMax}
                         onChange={(e) => editingItem.is_catering_tier ? setRatePrem(e.target.value) : setRateMax(e.target.value)}
-                        className="w-full px-3 py-2 border border-slate-300 rounded-lg text-xs font-semibold focus:outline-none focus:border-[#1E293B]"
+                        className="w-full px-4 py-2 border border-slate-350 rounded-full text-xs font-semibold focus:outline-none focus:border-navy-main"
                       />
                     </div>
                   </div>
@@ -868,24 +745,24 @@ export default function Catalog() {
                         type="checkbox"
                         checked={editIsLevelAdjusted}
                         onChange={(e) => setEditIsLevelAdjusted(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 text-[#1E293B]"
+                        className="w-4 h-4 rounded border-slate-300 text-navy-main"
                       />
-                      <span>Fee Terpengaruh Level Fee?</span>
+                      <span>Fee affected by Fee Level?</span>
                     </label>
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={editIsCateringTier}
                         onChange={(e) => setEditIsCateringTier(e.target.checked)}
-                        className="w-4 h-4 rounded border-slate-300 text-[#1E293B]"
+                        className="w-4 h-4 rounded border-slate-300 text-navy-main"
                       />
-                      <span>Termasuk Katering Tier?</span>
+                      <span>Include Catering Tier?</span>
                     </label>
                   </div>
 
                   {message && (
-                    <div className={`p-3 rounded-lg text-2xs font-bold text-center ${
-                      message.includes('berhasil') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
+                    <div className={`p-3 rounded-xl text-2xs font-bold text-center ${
+                      message.includes('successfully') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
                     }`}>
                       {message}
                     </div>
@@ -895,16 +772,17 @@ export default function Catalog() {
                     <button
                       type="button"
                       onClick={() => setEditingItem(null)}
-                      className="flex-1 py-2 border border-slate-300 font-bold rounded-lg text-[#14142B] text-center hover:bg-slate-100 transition"
+                      className="flex-1 py-2.5 border border-slate-300 font-bold rounded-full text-slate-700 text-center hover:bg-slate-100 transition active:scale-95 cursor-pointer"
                     >
-                      Batal
+                      Cancel
                     </button>
                     <button
                       type="submit"
                       disabled={loading}
-                      className="flex-1 py-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold rounded-lg text-center transition"
+                      className="flex-1 py-2.5 text-white font-bold rounded-full text-center transition active:scale-95 cursor-pointer"
+                      style={{ backgroundColor: 'var(--navy)' }}
                     >
-                      {loading ? 'Menyimpan...' : 'Simpan'}
+                      {loading ? 'Saving...' : 'Save'}
                     </button>
                   </div>
                 </form>
@@ -914,253 +792,12 @@ export default function Catalog() {
         </div>
       )}
 
-      {/* TAB 2: PACKAGE BUNDLING MANAGEMENT */}
-      {subTab === 'packages' && (
-        <div className="space-y-4">
-          <div className="flex justify-end">
-            {isEditor && (
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingPackage(null);
-                  setPackageCode('');
-                  setPackageName('');
-                  setPackageDesc('');
-                  setSelectedCatalogIds([]);
-                  setShowAddPkgForm(!showAddPkgForm);
-                  setPkgMessage('');
-                }}
-                className="px-4 py-2 bg-[#1E293B] hover:bg-[#334155] text-white text-xs font-bold rounded-lg shadow-sm transition"
-              >
-                {showAddPkgForm ? 'Tutup Form' : 'Buat Paket Baru'}
-              </button>
-            )}
-          </div>
+      {/* TAB 2: PACKAGES CONFIGURATION PANEL */}
+      {subTab === 'packages' && <PackagesPanel />}
 
-          {/* Add/Edit Package Form */}
-          {showAddPkgForm && (
-            <div className="card border-[#CBD5E1] bg-white animate-slide-down">
-              <div className="ch bg-[#1E293B]">
-                <span>{editingPackage ? `Ubah Paket Perjalanan: ${editingPackage.package_name}` : 'Buat Paket Perjalanan Baru'}</span>
-              </div>
-              <form onSubmit={handleSavePackageSubmit} className="cb p-5 space-y-4 text-xs font-semibold text-[#1E293B]">
-                
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {/* Package Code (Only editable during creation) */}
-                  <div className="space-y-1">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Kode Paket (Kode Unik)</label>
-                    <input
-                      type="text"
-                      disabled={!!editingPackage}
-                      value={packageCode}
-                      onChange={(e) => setPackageCode(e.target.value)}
-                      placeholder="Misal: EXECUTIVE / BINTANG_3"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B] disabled:bg-slate-50 disabled:text-slate-400 font-bold"
-                    />
-                  </div>
-
-                  {/* Package Name */}
-                  <div className="space-y-1 md:col-span-2">
-                    <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Nama Paket</label>
-                    <input
-                      type="text"
-                      value={packageName}
-                      onChange={(e) => setPackageName(e.target.value)}
-                      placeholder="Misal: Paket Kecil — Executive"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B] font-bold"
-                    />
-                  </div>
-                </div>
-
-                {/* Description */}
-                <div className="space-y-1">
-                  <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Deskripsi Paket</label>
-                  <textarea
-                    value={packageDesc}
-                    onChange={(e) => setPackageDesc(e.target.value)}
-                    placeholder="Tuliskan cakupan pelayanan atau kriteria jumlah jama'ah paket ini..."
-                    className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B] font-semibold text-xs h-16 resize-none"
-                  />
-                </div>
-
-                {/* Catalog Items Checklist Grouped by Category */}
-                <div className="space-y-3 pt-2">
-                  <label className="text-[10px] font-bold text-[#6E6E85] uppercase tracking-wider block border-b border-slate-100 pb-1">
-                    Pilih Layanan Yang Dimasukkan Ke Dalam Paket
-                  </label>
-                  
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[300px] overflow-y-auto pr-1">
-                    {Object.entries(catalogByCategory).map(([group, items]) => (
-                      <div key={group} className="border border-slate-200 rounded-lg overflow-hidden bg-slate-50/20">
-                        <div className="bg-[#1E293B]/10 px-3 py-1.5 border-b border-slate-200 text-[#1E293B] font-bold text-[9px] uppercase tracking-wider">
-                          {groupLabels[group] || group}
-                        </div>
-                        <div className="p-3.5 space-y-2.5">
-                          {items.map(item => {
-                            const isChecked = selectedCatalogIds.includes(item.id);
-                            return (
-                              <label key={item.id} className="flex items-start gap-2.5 cursor-pointer text-slate-700 hover:text-[#1E293B] transition select-none">
-                                <input
-                                  type="checkbox"
-                                  checked={isChecked}
-                                  onChange={() => handleToggleCatalogId(item.id)}
-                                  className="w-4 h-4 rounded border-slate-350 text-[#1E293B] mt-0.5 cursor-pointer"
-                                />
-                                <div className="leading-snug">
-                                  <div className="font-bold text-xs">{item.item_name}</div>
-                                  <div className="text-[9px] text-[#6E6E85] font-semibold">{item.basis} &middot; {parseFloat(item.rate_standard)} SAR</div>
-                                </div>
-                              </label>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {pkgMessage && (
-                  <div className={`p-3 rounded-lg text-2xs font-bold text-center ${
-                    pkgMessage.includes('berhasil') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
-                  }`}>
-                    {pkgMessage}
-                  </div>
-                )}
-
-                <div className="flex justify-end gap-3.5 pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setShowAddPkgForm(false)}
-                    className="px-4 py-2 border border-slate-300 hover:bg-slate-50 rounded-lg transition"
-                  >
-                    Batal
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={pkgLoading}
-                    className="px-5 py-2 bg-[#1E293B] hover:bg-[#334155] text-white rounded-lg shadow transition"
-                  >
-                    {pkgLoading ? 'Menyimpan...' : 'Simpan Paket'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          )}
-
-          {/* Packages List Table */}
-          <div className="card bg-white">
-            <div className="overflow-x-auto">
-              <table className="w-full text-left border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-50/50 text-[#6E6E85] font-semibold uppercase tracking-wider text-[10px] border-b border-[#DBDBDB]">
-                    <th className="p-3.5 w-24">Kode Paket</th>
-                    <th className="p-3.5 w-52">Nama Paket</th>
-                    <th className="p-3.5">Deskripsi</th>
-                    <th className="p-3.5 text-center w-28">Layanan Tergabung</th>
-                    <th className="p-3.5 text-center w-28">Aksi</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 font-medium text-[#14142B]">
-                  {packages.map(pkg => (
-                    <tr key={pkg.id} className="hover:bg-slate-50/20 transition duration-150">
-                      <td className="p-3.5 font-bold text-[#1E293B] uppercase">{pkg.package_code}</td>
-                      <td className="p-3.5 font-bold text-[#1E293B]">{pkg.package_name}</td>
-                      <td className="p-3.5 text-slate-500 font-normal leading-relaxed">{pkg.description || 'Tidak ada deskripsi.'}</td>
-                      <td className="p-3.5 text-center font-bold">
-                        <span className="px-2 py-0.5 rounded text-[10px] bg-slate-100 text-slate-600 border border-slate-200">
-                          {pkg.catalog_ids ? pkg.catalog_ids.length : 0} Layanan
-                        </span>
-                      </td>
-                      <td className="p-3.5 text-center flex items-center justify-center gap-1.5 py-4">
-                        {isEditor && (
-                          <button
-                            type="button"
-                            onClick={() => handleEditPackageClick(pkg)}
-                            className="px-2.5 py-1.5 bg-[#1E293B] hover:bg-[#334155] text-white text-[10px] font-bold rounded-lg transition"
-                          >
-                            Ubah
-                          </button>
-                        )}
-                        {isAdmin && (
-                          <button
-                            type="button"
-                            onClick={() => handleDeletePackageClick(pkg.id)}
-                            className="px-2.5 py-1.5 border border-slate-250 text-slate-400 hover:text-red-650 hover:bg-red-50 hover:border-red-500/30 text-[10px] font-bold rounded-lg transition"
-                          >
-                            Hapus
-                          </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* TAB 3: MARGIN SETTINGS */}
-      {subTab === 'settings' && (
-        <div className="space-y-4">
-          <div className="card border-[#CBD5E1] bg-white max-w-md">
-            <div className="ch bg-[#1E293B]">
-              <span>Atur Batas Margin Keuntungan</span>
-            </div>
-            <form onSubmit={handleSaveSettings} className="cb p-5 space-y-4 text-xs font-semibold text-[#1E293B]">
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Target Margin (%) - Kelayakan Otomatis</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  max="100"
-                  value={targetMarginInput}
-                  onChange={(e) => setTargetMarginInput(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B] font-bold text-sm"
-                />
-                <p className="text-[9px] text-[#6E6E85] font-normal leading-normal mt-1">
-                  Jika margin proposal di bawah nilai ini, proposal yang dibuat oleh Client akan dialihkan statusnya ke "Menunggu Persetujuan Admin" (Pending Approval).
-                </p>
-              </div>
-
-              <div className="space-y-1">
-                <label className="text-[9px] font-bold text-[#6E6E85] uppercase tracking-wider block">Batas Bawah Floor Margin (%)</label>
-                <input
-                  type="number"
-                  step="0.5"
-                  min="0"
-                  max="100"
-                  value={floorMarginInput}
-                  onChange={(e) => setFloorMarginInput(e.target.value)}
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:border-[#1E293B] font-bold text-sm"
-                />
-                <p className="text-[9px] text-[#6E6E85] font-normal leading-normal mt-1">
-                  Proposal di bawah nilai ini akan dianggap "Tidak Layak" dan diberi tanda bahaya.
-                </p>
-              </div>
-
-              {settingsMsg && (
-                <div className={`p-3 rounded-lg text-2xs font-bold text-center ${
-                  settingsMsg.includes('berhasil') ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'
-                }`}>
-                  {settingsMsg}
-                </div>
-              )}
-
-              <div className="pt-2">
-                <button
-                  type="submit"
-                  disabled={settingsLoading}
-                  className="w-full py-2 bg-[#1E293B] hover:bg-[#334155] text-white font-bold rounded-lg text-center transition"
-                >
-                  {settingsLoading ? 'Menyimpan...' : 'Simpan Konfigurasi'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* TAB 3: MARGIN SETTINGS PANEL */}
+      {subTab === 'settings' && <SettingsPanel />}
+      
     </div>
   );
 }

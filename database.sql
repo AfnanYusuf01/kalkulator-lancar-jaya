@@ -1,6 +1,4 @@
 -- Database DDL for Kalkulator Lancar Jaya
-CREATE DATABASE IF NOT EXISTS lancar_jaya_db;
-USE lancar_jaya_db;
 
 -- Table: users
 CREATE TABLE IF NOT EXISTS users (

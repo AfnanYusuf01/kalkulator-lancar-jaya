@@ -17,9 +17,10 @@ async function seed() {
   });
 
   try {
+    const dbName = process.env.DB_NAME || 'lancar_jaya_db';
     // Ensure DB exists and select it
-    await connection.query('CREATE DATABASE IF NOT EXISTS lancar_jaya_db');
-    await connection.query('USE lancar_jaya_db');
+    await connection.query(`CREATE DATABASE IF NOT EXISTS ${dbName}`);
+    await connection.query(`USE ${dbName}`);
 
     // Drop tables to force recreation of new columns and tables
     console.log('Dropping existing tables...');

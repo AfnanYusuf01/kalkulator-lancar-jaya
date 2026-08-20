@@ -339,19 +339,38 @@ export default function Proposals() {
             </div>
 
             {/* Print Header Ribbon (Print ONLY) */}
-            <div className="hidden print:flex items-center justify-between border-b-2 pb-5 mb-6" style={{ borderBottomColor: 'var(--navy)' }}>
-              <div className="flex items-center gap-3">
-                <div className="px-4 py-2 text-white font-black text-2xl rounded-lg" style={{ backgroundColor: 'var(--navy)' }}>LJ</div>
-                <div className="text-left">
-                  <h1 className="text-lg font-black leading-none" style={{ color: 'var(--navy)' }}>PT LANCAR JAYA</h1>
-                  <span className="text-[9px] font-bold text-slate-400 tracking-wider uppercase mt-1 block">LA &amp; HANDLING SERVICES</span>
+            <div className="hidden print:block mb-8">
+              <div className="flex items-center justify-between border-b-4 pb-4" style={{ borderBottomColor: 'var(--navy)' }}>
+                {/* Logo and Company Name */}
+                <div className="flex items-center gap-4">
+                  {/* Decorative High-End Vector Logo */}
+                  <div className="w-14 h-14 rounded-full flex items-center justify-center bg-gradient-to-tr from-blue-700 to-blue-500 shadow-md text-white font-black text-xl">
+                    <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                      <path d="M3 21h18M3 10h18M3 6h18M3 14h18M3 17h18M12 2v4" />
+                    </svg>
+                  </div>
+                  <div className="text-left">
+                    <h1 className="text-xl font-black tracking-tight" style={{ color: 'var(--navy)' }}>PT. LANCAR JAYA INDONESIA</h1>
+                    <p className="text-[9px] font-black text-amber-600 tracking-widest uppercase mt-0.5">LA &amp; Handling Services Makkah &amp; Madinah</p>
+                  </div>
+                </div>
+                {/* Contact & Location Info */}
+                <div className="text-right text-[8.5px] text-slate-500 font-semibold leading-relaxed">
+                  <div>Grand Slipi Tower Lt. 18, Slipi, Jakarta Barat, Indonesia</div>
+                  <div>WhatsApp: +62 811-999-888 &bull; Email: info@lancar-jaya.id</div>
+                  <div>Web: lancar-jaya.streamo.id</div>
                 </div>
               </div>
-              <div className="text-right">
-                <h2 className="text-sm font-black" style={{ color: 'var(--navy)' }}>{selectedProposal.proposal_number}</h2>
-                <span className="text-2xs text-slate-400 font-medium">
-                  Date: {new Date(selectedProposal.created_at).toLocaleDateString('en-US', { day: '2-digit', month: 'long', year: 'numeric' })}
-                </span>
+              {/* Secondary Thin Accent Line */}
+              <div className="h-1 bg-amber-500/80 -mt-1 mb-6"></div>
+
+              {/* Quotation Document Title */}
+              <div className="text-center my-6">
+                <h2 className="text-base font-black tracking-wider text-slate-800 uppercase">SURAT PENAWARAN HARGA (QUOTATION)</h2>
+                <div className="w-16 h-0.5 bg-slate-400 mx-auto my-1.5"></div>
+                <p className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">
+                  Nomor: {selectedProposal.proposal_number} &bull; Tanggal: {new Date(selectedProposal.created_at).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })}
+                </p>
               </div>
             </div>
 
@@ -411,7 +430,7 @@ export default function Proposals() {
                 </h4>
                 
                 {/* Desktop View Table */}
-                <div className="hidden md:block border border-[#DBDBDB] rounded-2xl overflow-hidden">
+                <div className="hidden md:block print:block border border-[#DBDBDB] rounded-2xl overflow-hidden">
                   <table className="w-full text-left border-collapse text-xs bg-white">
                     <thead>
                       <tr className="bg-slate-50/60 text-[#6E6E85] font-semibold uppercase tracking-wider text-[9px] border-b border-[#DBDBDB]">
@@ -445,7 +464,7 @@ export default function Proposals() {
                 </div>
 
                 {/* Mobile View Card Stack */}
-                <div className="md:hidden space-y-3">
+                <div className="md:hidden print:hidden space-y-3">
                   {getDetailsList().map((item, idx) => (
                     <div key={idx} className="bg-[#FAFAFC] rounded-2xl p-4 border border-slate-100 flex items-center justify-between text-left gap-3 shadow-4xs">
                       <div>
@@ -531,11 +550,29 @@ export default function Proposals() {
 
               {/* Print Footer Note (Print ONLY) */}
               <div className="hidden print:block text-[9px] text-slate-400 mt-12 border-t border-slate-200 pt-4 leading-relaxed font-semibold">
-                <p>** Terms &amp; Conditions Note:</p>
+                <p>** Syarat &amp; Ketentuan Penawaran (T&amp;C):</p>
                 <ol className="list-decimal pl-4 mt-1 space-y-0.5 font-medium">
-                  <li>Reference exchange rate: 1 SAR = {parseFloat(selectedProposal.exchange_rate).toLocaleString('en-US')} IDR. Final billing adjustment will follow the rate at transaction time.</li>
-                  <li>Special &amp; incidental services (medical, death, emergency assignments) are not included in this quote and will be billed separately.</li>
+                  <li>Kurs referensi transaksi: 1 SAR = {parseFloat(selectedProposal.exchange_rate).toLocaleString('id-ID')} IDR. Penagihan akhir akan disesuaikan dengan kurs riil saat pembayaran dilakukan.</li>
+                  <li>Layanan insidentil (penanganan medis, evakuasi darurat, kargo jenazah, atau penanganan khusus di luar kesepakatan) tidak termasuk dalam penawaran ini dan akan ditagihkan secara terpisah.</li>
                 </ol>
+              </div>
+
+              {/* Signature Block (Print ONLY) */}
+              <div className="hidden print:grid grid-cols-2 gap-12 mt-12 text-center text-[10px] font-semibold text-slate-700">
+                <div className="flex flex-col items-center">
+                  <p>Disiapkan oleh,</p>
+                  <p className="font-extrabold text-slate-800 mt-1" style={{ color: 'var(--navy)' }}>PT. Lancar Jaya Indonesia</p>
+                  <div className="h-16"></div>
+                  <div className="w-48 border-b border-slate-400"></div>
+                  <p className="mt-1 font-bold text-slate-500">Operation &amp; Handling Team</p>
+                </div>
+                <div className="flex flex-col items-center">
+                  <p>Disetujui oleh (Client),</p>
+                  <p className="font-extrabold text-slate-800 mt-1">{selectedProposal.client_name}</p>
+                  <div className="h-16"></div>
+                  <div className="w-48 border-b border-slate-400"></div>
+                  <p className="mt-1 font-bold text-slate-500">Penanggung Jawab / Pimpinan</p>
+                </div>
               </div>
 
             </div>

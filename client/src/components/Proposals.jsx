@@ -26,7 +26,7 @@ export default function Proposals() {
     setLoadingDetail(true);
     setDetailError('');
     try {
-      const response = await fetch(`http://localhost:5000/api/proposals/${proposalId}`, {
+      const response = await fetch(`/api/proposals/${proposalId}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }

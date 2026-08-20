@@ -9,7 +9,7 @@ export default function Dashboard() {
 
   const fetchStats = async () => {
     try {
-      const response = await fetch('http://localhost:5000/api/dashboard/stats', {
+      const response = await fetch('/api/dashboard/stats', {
         headers: {
           'Authorization': `Bearer ${token}`
         }

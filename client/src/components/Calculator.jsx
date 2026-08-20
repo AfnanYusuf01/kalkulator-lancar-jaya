@@ -280,15 +280,11 @@ export default function Calculator() {
         <summary className="cursor-pointer bg-[#FAFAFC] px-5 py-4 border-b border-slate-100 flex justify-between items-center text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--navy)' }}>
           <span>Core Services</span>
         </summary>
-        <div className={`rh ${isClient ? 'is-client-grid' : ''} bg-slate-50/50 px-4 py-2 border-b border-slate-100`}>
+        <div className="rh bg-slate-50/50 px-4 py-2 border-b border-slate-100">
           <span>Select Components</span>
           <span>Qty</span>
-          {!isClient && (
-            <>
-              <span>Rate</span>
-              <span>Subtotal</span>
-            </>
-          )}
+          <span>Rate</span>
+          <span>Subtotal</span>
         </div>
         {Object.entries(cGroups).map(([group, items]) => (
           <div key={group}>
@@ -296,7 +292,7 @@ export default function Calculator() {
             {items.map(item => {
               const idx = coreItems.findIndex(x => x.id === item.id);
               return (
-                <div key={item.id} className={`ir ${item.active ? '' : 'off'} ${isClient ? 'is-client-grid' : ''} px-4 py-2.5 border-b border-slate-100`}>
+                <div key={item.id} className={`ir ${item.active ? '' : 'off'} px-4 py-2.5 border-b border-slate-100`}>
                   <div className="nm flex items-center gap-2">
                     <label className="tg">
                       <input type="checkbox" checked={item.active} onChange={() => handleToggleCore(idx)} />
@@ -308,14 +304,10 @@ export default function Calculator() {
                   <div>
                     <input type="number" className="n rounded-lg border-slate-200" disabled={!item.active || isClient} value={item.q_override !== null ? item.q_override : item.qty_default} onChange={(e) => handleQtyChange('C', idx, e.target.value)} />
                   </div>
-                  {!isClient && (
-                    <>
-                      <div>
-                        <input type="number" className="n rounded-lg border-slate-200" disabled={!item.active || item.bellboy_type || item.is_level_adjusted || isClient} value={parseFloat(item.rate.toFixed(1))} onChange={(e) => handleRateChange('C', idx, e.target.value)} />
-                      </div>
-                      <div className="sb font-bold text-right" style={{ color: 'var(--navy)' }}>{formatSAR(item.subtotal)}</div>
-                    </>
-                  )}
+                  <div>
+                    <input type="number" className="n rounded-lg border-slate-200" disabled={!item.active || item.bellboy_type || item.is_level_adjusted || isClient} value={parseFloat(item.rate.toFixed(1))} onChange={(e) => handleRateChange('C', idx, e.target.value)} />
+                  </div>
+                  <div className="sb font-bold text-right" style={{ color: 'var(--navy)' }}>{formatSAR(item.subtotal)}</div>
                 </div>
               );
             })}
@@ -365,15 +357,11 @@ export default function Calculator() {
           <summary className="cursor-pointer bg-[#FAFAFC] px-5 py-4 border-b border-slate-100 flex justify-between items-center text-xs font-bold uppercase tracking-wider" style={{ color: 'var(--navy)' }}>
             <span>Optional Services</span>
           </summary>
-          <div className={`rh ${isClient ? 'is-client-grid' : ''} bg-slate-50/50 px-4 py-2 border-b border-slate-100`}>
+          <div className="rh bg-slate-50/50 px-4 py-2 border-b border-slate-100">
             <span>Select Components</span>
             <span>Qty</span>
-            {!isClient && (
-              <>
-                <span>Rate</span>
-                <span>Subtotal</span>
-              </>
-            )}
+            <span>Rate</span>
+            <span>Subtotal</span>
           </div>
           {Object.entries(oGroups).map(([group, items]) => (
             <div key={group}>
@@ -381,7 +369,7 @@ export default function Calculator() {
               {items.map(item => {
                 const idx = optItems.findIndex(x => x.id === item.id);
                 return (
-                  <div key={item.id} className={`ir ${item.active ? '' : 'off'} ${isClient ? 'is-client-grid' : ''} px-4 py-2.5 border-b border-slate-100`}>
+                  <div key={item.id} className={`ir ${item.active ? '' : 'off'} px-4 py-2.5 border-b border-slate-100`}>
                     <div className="nm flex items-center gap-2">
                       <label className="tg">
                         <input type="checkbox" checked={item.active} onChange={() => handleToggleOption(idx)} />
@@ -393,17 +381,13 @@ export default function Calculator() {
                     <div>
                       <input type="number" className="n rounded-lg border-slate-200" disabled={!item.active} value={item.q_override !== null ? item.q_override : item.qty_default} onChange={(e) => handleQtyChange('O', idx, e.target.value)} />
                     </div>
-                    {!isClient && (
-                      <>
-                        <div>
-                          <input type="number" className="n rounded-lg border-slate-200" disabled={!item.active || isClient} value={parseFloat(item.rate.toFixed(1))} onChange={(e) => handleRateChange('O', idx, e.target.value)} />
-                        </div>
-                        <div className="sb font-bold text-right" style={{ color: 'var(--navy)' }}>
-                          {formatSAR(item.subtotal)}
-                          {item.is_custom && <button type="button" onClick={() => handleDeleteCustom(idx)} className="del ml-2 text-red-500 hover:text-red-700 font-extrabold text-sm">&times;</button>}
-                        </div>
-                      </>
-                    )}
+                    <div>
+                      <input type="number" className="n rounded-lg border-slate-200" disabled={!item.active || isClient} value={parseFloat(item.rate.toFixed(1))} onChange={(e) => handleRateChange('O', idx, e.target.value)} />
+                    </div>
+                    <div className="sb font-bold text-right" style={{ color: 'var(--navy)' }}>
+                      {formatSAR(item.subtotal)}
+                      {item.is_custom && <button type="button" onClick={() => handleDeleteCustom(idx)} className="del ml-2 text-red-500 hover:text-red-700 font-extrabold text-sm">&times;</button>}
+                    </div>
                   </div>
                 );
               })}

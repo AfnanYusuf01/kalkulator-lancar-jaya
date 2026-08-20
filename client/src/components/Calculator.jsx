@@ -614,14 +614,27 @@ export default function Calculator() {
       <div onClick={() => !isClient && setActiveStep('ringkasan')} className="mbar no-print cursor-pointer hover:bg-opacity-95 active:scale-[0.99] transition">
         <div className="flex-1 text-left">
           <div className="k">Selling Price per Pax</div>
-          <div className="v">{cost.sp.toFixed(1)} SAR <span className="text-[10px] text-blue-200 font-semibold ml-1">({formatIDR(cost.sp)})</span></div>
+          <div className="v">
+            {cost.sp.toFixed(1)} SAR 
+            <span className="text-[10px] text-white/75 font-bold ml-2">({formatIDR(cost.sp)})</span>
+          </div>
         </div>
         <div>
           {user?.role !== 'inputer' && (
-            <button type="button" onClick={(e) => { e.stopPropagation(); setShowSaveModal(true); }} className="px-4 py-2 bg-tan-gold hover:bg-tan-hover text-white font-extrabold text-2xs uppercase rounded-full shadow-md transition active:scale-95 cursor-pointer">Save</button>
+            <button 
+              type="button" 
+              onClick={(e) => { e.stopPropagation(); setShowSaveModal(true); }} 
+              className="px-5 py-2.5 bg-white hover:bg-slate-50 text-blue-600 font-black text-[11px] uppercase tracking-wider rounded-full shadow-md transition duration-150 active:scale-95 cursor-pointer flex items-center gap-1.5"
+            >
+              <svg className="w-3.5 h-3.5 text-blue-600" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M17.593 3.322c1.1.128 1.907 1.077 1.907 2.185V21L12 17.25 4.5 21V5.507c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0z" />
+              </svg>
+              <span>Save</span>
+            </button>
           )}
         </div>
       </div>
+
 
       {showSaveModal && (
         <div className="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-2xs">

@@ -624,8 +624,8 @@ export default function Catalog() {
             </div>
           )}
 
-          {/* Catalog Parameters List */}
-          <div className="card bg-white">
+          {/* Catalog Parameters List (Desktop Table View) */}
+          <div className="hidden md:block card bg-white">
             <div className="overflow-x-auto">
               <table className="w-full text-left border-collapse text-xs">
                 <thead>
@@ -694,6 +694,72 @@ export default function Catalog() {
                 </tbody>
               </table>
             </div>
+          </div>
+
+          {/* Catalog Parameters List (Mobile Card View - No Horizontal Scroll!) */}
+          <div className="md:hidden space-y-3">
+            {catalog.map(item => (
+              <div key={item.id} className="bg-white rounded-2xl border border-slate-200/80 shadow-[0_4px_15px_rgba(0,0,0,0.02)] p-4 flex items-center justify-between gap-3 relative">
+                <div className="flex items-center gap-3">
+                  {/* Category Circle Icon */}
+                  <div className={`w-9 h-9 rounded-full flex items-center justify-center font-black text-[10px] ${
+                    item.group_name === 'HANDLING' ? 'bg-blue-50 text-blue-600' :
+                    item.group_name === 'MUTHOWIF' ? 'bg-purple-50 text-purple-600' :
+                    item.group_name === 'KATERING' ? 'bg-amber-50 text-amber-655 border border-amber-200' :
+                    item.group_name === 'DRIVER' ? 'bg-emerald-50 text-emerald-600' :
+                    'bg-slate-100 text-slate-650'
+                  }`}>
+                    {item.group_name.slice(0, 2)}
+                  </div>
+                  
+                  {/* Item Description */}
+                  <div className="text-left">
+                    <h4 className="font-extrabold text-xs text-[#0F172A] leading-snug">{item.item_name}</h4>
+                    <div className="flex flex-wrap items-center gap-1.5 mt-1">
+                      <span className={`px-1.5 py-0.2 rounded text-[7.5px] font-bold uppercase tracking-wider ${groupBadgeColors(item.group_name)}`}>
+                        {groupLabels[item.group_name] || item.group_name}
+                      </span>
+                      <span className="text-[8px] font-bold text-slate-400 uppercase">{item.basis} &middot; Qty: {parseFloat(item.qty_default)}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Rates & Inline Actions */}
+                <div className="text-right flex flex-col items-end justify-center min-w-[100px]">
+                  <div className="font-black text-xs text-[#0066FF] leading-tight">
+                    {parseFloat(item.rate_standard).toLocaleString('id-ID')} SAR
+                  </div>
+                  <div className="text-[8.5px] font-bold text-slate-400 mt-0.5">
+                    Max: {item.is_catering_tier 
+                      ? parseFloat(item.rate_premium).toLocaleString('id-ID') + ' (Prem)'
+                      : parseFloat(item.rate_maximal).toLocaleString('id-ID')
+                    } SAR
+                  </div>
+                  
+                  {/* Inline Edit/Delete */}
+                  {isEditor && (
+                    <div className="flex items-center gap-1 mt-2">
+                      <button
+                        type="button"
+                        onClick={() => handleEditClick(item)}
+                        className="px-2 py-1 bg-slate-50 hover:bg-[#1E293B] hover:text-white text-[8px] font-bold text-slate-600 rounded-md transition"
+                      >
+                        Ubah
+                      </button>
+                      {isAdmin && (
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteItem(item.id)}
+                          className="px-2 py-1 bg-red-50 hover:bg-red-650 hover:text-white text-[8px] font-bold text-red-650 rounded-md transition"
+                        >
+                          Hapus
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Edit Parameter Modal */}
